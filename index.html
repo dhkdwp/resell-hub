@@ -44,7 +44,7 @@
     .btn-logout { background: var(--danger-color); color: white; }
     .btn-admin-link { background: var(--expert-gold); color: white; font-weight: 700; text-decoration: none; padding: 0.4rem 0.8rem; border-radius: 6px; font-size: 0.8rem; }
 
-    .container { max-width: 1000px; margin: 1rem auto; padding: 0 1rem; }
+    .container { max-width: 1100px; margin: 1rem auto; padding: 0 1rem; }
     .page-title { margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center; }
     .page-title h2 { font-size: 1.2rem; font-weight: 700; color: var(--text-main); }
 
@@ -56,12 +56,19 @@
     }
     .landing-card h1 { font-size: 1.8rem; color: #4a3f35; margin-bottom: 0.8rem; font-weight: 800; letter-spacing: -0.5px; }
     .landing-card p { font-size: 0.95rem; color: var(--text-muted); margin-bottom: 1.8rem; font-weight: 500; word-break: keep-all; }
+    
+    .hero-btn-group { display: flex; gap: 0.8rem; justify-content: center; align-items: center; flex-wrap: wrap; }
     .btn-explore {
       background-color: var(--accent-color); color: white; padding: 0.8rem 2rem;
       border-radius: 30px; font-size: 1rem; font-weight: 700; cursor: pointer; border: none;
       box-shadow: 0 4px 15px rgba(140, 115, 85, 0.2); transition: transform 0.2s, background-color 0.2s;
     }
-    .btn-explore:active { transform: scale(0.98); }
+    .btn-secondary {
+      background-color: transparent; color: var(--accent-color); border: 2px solid var(--accent-color); padding: 0.75rem 1.8rem;
+      border-radius: 30px; font-size: 1rem; font-weight: 700; cursor: pointer;
+      transition: transform 0.2s, background-color 0.2s;
+    }
+    .btn-explore:active, .btn-secondary:active { transform: scale(0.98); }
 
     .notice-box {
       background: #fffdfa; border: 1px solid var(--expert-gold);
@@ -138,17 +145,36 @@
     .full-modal-image { width: 100%; max-height: 350px; object-fit: contain; border-radius: 10px; margin-bottom: 1.2rem; background: #fff; border: 1px solid var(--border-color); }
     .full-modal-content { font-size: 0.95rem; line-height: 1.7; color: var(--text-main); white-space: pre-line; word-break: break-all; }
 
+    /* 데스크톱(PC) UI 확장 시각화 */
     @media (min-width: 769px) {
-      header { flex-direction: row; justify-content: space-between; padding: 1rem 2rem; }
+      header { flex-direction: row; justify-content: space-between; padding: 1.2rem 3rem; }
       .header-top { width: auto; }
-      .nav-links { width: auto; overflow-x: visible; }
-      .nav-links a { margin-left: 1.5rem; }
-      .shop-grid { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
-      .landing-card { padding: 5rem 2rem; border-radius: 20px; }
-      .landing-card h1 { font-size: 2.2rem; }
-      .landing-card p { font-size: 1.1rem; }
-      .full-modal-body { max-width: 800px; padding: 0 1.5rem; }
-      .full-modal-title { font-size: 1.8rem; }
+      .logo { font-size: 1.6rem; }
+      .nav-links { width: auto; overflow-x: visible; gap: 2rem; }
+      .nav-links a { font-size: 1.05rem; }
+      
+      .container { max-width: 1150px; margin: 2rem auto; padding: 0 1.5rem; }
+      .page-title h2 { font-size: 1.5rem; }
+      .page-title { margin-bottom: 1.5rem; }
+
+      .shop-grid { grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.2rem; }
+      .shop-card { padding: 1.6rem; border-radius: 16px; }
+
+      .post-card { padding: 1.5rem; border-radius: 16px; margin-bottom: 1rem; }
+      .post-title { font-size: 1.2rem; }
+      .post-body { font-size: 0.95rem; }
+      .post-img-thumb { max-height: 260px; }
+
+      .landing-card { padding: 6rem 3rem; border-radius: 24px; }
+      .landing-card h1 { font-size: 2.8rem; margin-bottom: 1.2rem; }
+      .landing-card p { font-size: 1.25rem; margin-bottom: 2.5rem; }
+      .btn-explore, .btn-secondary { font-size: 1.1rem; padding: 0.9rem 2.2rem; }
+
+      .full-modal-body { max-width: 880px; padding: 1rem 2rem; }
+      .full-modal-title { font-size: 2rem; }
+      .full-modal-content { font-size: 1.05rem; }
+      .full-modal-image { max-height: 450px; }
+      .notice-box { font-size: 0.95rem; padding: 1rem 1.4rem; border-radius: 12px; }
     }
   </style>
 </head>
@@ -171,8 +197,8 @@
     </div>
     
     <nav class="nav-links">
-      <a id="nav-appraisal" onclick="navigateTo('appraisal')">명품 감정 탭</a>
-      <a id="nav-shops" onclick="navigateTo('shops')">인증된 명품샵</a>
+      <a id="nav-appraisal" onclick="navigateTo('appraisal')">자율 감정소</a>
+      <a id="nav-shops" onclick="navigateTo('shops')">제휴 업체</a>
       <a id="nav-free" onclick="navigateTo('free')">자유게시판</a>
     </nav>
   </header>
@@ -182,7 +208,10 @@
       <div class="landing-card">
         <h1>RESELL HUB</h1>
         <p>모든 문의는 틱톡으로.</p>
-        <button class="btn-explore" onclick="redirectToMainDomain()">문의하기 ➔</button>
+        <div class="hero-btn-group">
+          <button class="btn-explore" onclick="redirectToMainDomain()">문의하기 ➔</button>
+          <button class="btn-secondary" onclick="navigateTo('free')">둘러보기 ➔</button>
+        </div>
       </div>
     </section>
 
@@ -191,7 +220,7 @@
         ⚠️ <b>감정 관련 안내:</b> 게시판 내 감정 소견은 사진 기반의 참고용 정보이며, 법적 보증 효력은 없습니다.
       </div>
       <div class="page-title">
-        <h2>🔍 감정 질문</h2>
+        <h2>🔍 자율 감정소</h2>
         <button class="btn-write" onclick="openModal('write-appraisal')">+ 질문하기</button>
       </div>
       <div id="appraisal-posts"></div>
@@ -199,7 +228,7 @@
 
     <section id="tab-shops" class="hidden">
       <div class="page-title">
-        <h2>🛍️ 제휴 목록</h2>
+        <h2>🛍️ 제휴 업체 목록</h2>
       </div>
       <div class="shop-grid">
         <a href="제휴" target="_blank" class="shop-card">
@@ -447,7 +476,6 @@
       }
     }
 
-    // ★ 게시판 분류 로직 보완 (자유 / 감정 완벽 분리)
     async function fetchPosts() {
       const { data: posts, error } = await supabaseClient
         .from('posts')
@@ -467,10 +495,7 @@
         return new Date(b.created_at) - new Date(a.created_at);
       });
 
-      // 명품 감정 탭: [감정요청] 포함글
       const appraisalPosts = sortedPosts.filter(p => p.title.includes('[감정요청]'));
-
-      // 자유게시판: [감정요청] 미포함글
       const freePosts = sortedPosts.filter(p => !p.title.includes('[감정요청]'));
 
       if (appraisalContainer) {
