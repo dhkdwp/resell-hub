@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>RESELL HUB - 리셀 & 명품 감정 커뮤니티</title>
+  <title>RESELL HUB - 1020 리셀 & 명품 감정 커뮤니티</title>
   <!-- Supabase JS SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
@@ -12,6 +12,7 @@
       --card-bg: #1e293b;
       --accent-color: #6366f1;
       --expert-gold: #f59e0b;
+      --danger-color: #ef4444;
       --text-main: #f8fafc;
       --text-muted: #94a3b8;
       --border-color: #334155;
@@ -35,14 +36,14 @@
     }
     .btn-login { background: transparent; color: var(--text-main); }
     .btn-signup { background: var(--accent-color); color: white; margin-left: 0.5rem; }
-    .btn-logout { background: #ef4444; color: white; margin-left: 0.5rem; }
+    .btn-logout { background: var(--danger-color); color: white; margin-left: 0.5rem; }
 
     /* Main Layout */
     .container { max-width: 1000px; margin: 2rem auto; padding: 0 1rem; }
     .page-title { margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; }
     .page-title h2 { font-size: 1.4rem; font-weight: 700; }
 
-    /* Landing Welcome Page Style */
+    /* Landing Welcome Page */
     .landing-card {
       background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(30, 41, 59, 0.9));
       border: 1px solid var(--accent-color);
@@ -71,7 +72,6 @@
     .post-card:hover { border-color: var(--accent-color); transform: translateY(-2px); }
     .post-header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; }
     .author { font-weight: 600; font-size: 0.9rem; }
-    
     .time { font-size: 0.75rem; color: var(--text-muted); margin-left: auto; }
     .post-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem; }
     .post-body { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1rem; }
@@ -87,13 +87,17 @@
     .shop-card:hover { border-color: var(--expert-gold); transform: translateY(-3px); }
     .shop-badge { background: rgba(245, 158, 11, 0.15); color: var(--expert-gold); font-size: 0.75rem; padding: 0.2rem 0.5rem; border-radius: 4px; width: fit-content; margin-bottom: 0.5rem; font-weight: bold; }
 
-    /* Action Buttons */
+    /* Admin Table Style */
+    .admin-table { width: 100%; border-collapse: collapse; margin-top: 1rem; background: var(--card-bg); border-radius: 8px; overflow: hidden; }
+    .admin-table th, .admin-table td { padding: 0.8rem 1rem; text-align: left; border-bottom: 1px solid var(--border-color); font-size: 0.9rem; }
+    .admin-table th { background: rgba(255,255,255,0.05); color: var(--text-muted); }
+    .btn-delete { background: var(--danger-color); color: white; border: none; padding: 0.3rem 0.7rem; border-radius: 4px; cursor: pointer; font-size: 0.8rem; }
+
+    /* Action Buttons & Utilities */
     .btn-write {
       background-color: var(--accent-color); color: white; padding: 0.6rem 1.2rem;
       border-radius: 8px; text-decoration: none; font-size: 0.9rem; font-weight: 600; cursor: pointer; border: none;
     }
-
-    /* Helper Utility */
     .hidden { display: none !important; }
 
     /* Modal Style */
@@ -105,10 +109,7 @@
       background-color: var(--card-bg); border: 1px solid var(--border-color);
       border-radius: 12px; padding: 2rem; width: 90%; max-width: 450px; position: relative; max-height: 90vh; overflow-y: auto;
     }
-    .modal-close {
-      position: absolute; top: 1rem; right: 1rem; background: none; border: none;
-      color: var(--text-muted); font-size: 1.4rem; cursor: pointer;
-    }
+    .modal-close { position: absolute; top: 1rem; right: 1rem; background: none; border: none; color: var(--text-muted); font-size: 1.4rem; cursor: pointer; }
     .modal-title { font-size: 1.3rem; font-weight: 700; margin-bottom: 1.5rem; text-align: center; }
     .form-group { margin-bottom: 1rem; }
     .form-group label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.4rem; }
@@ -142,13 +143,13 @@
 <body>
 
   <header>
-    <div class="logo" onclick="navigateTo('welcome')">RESELL HUB</div>
+    <div class="logo" onclick="navigateToWelcome()">RESELL HUB</div>
     <nav class="nav-links">
       <a id="nav-appraisal" onclick="navigateTo('appraisal')">명품 감정 탭</a>
-      <a id="nav-shops" onclick="navigateTo('shops')">명품샵</a>
-      <a id="nav-market" onclick="navigateTo('market')">실시간 시세/수익</a>
-      <a id="nav-deal" onclick="navigateTo('deal')">꿀매물 알림</a>
+      <a id="nav-shops" onclick="navigateTo('shops')">인증된 명품샵</a>
       <a id="nav-free" onclick="navigateTo('free')">자유게시판</a>
+      <!-- 관리자 로그인 시에만 노출되는 탭 -->
+      <a id="nav-admin" class="hidden" onclick="navigateTo('admin')" style="color: var(--expert-gold);">⚙️ 관리자 전용</a>
     </nav>
     <div class="auth-btns">
       <div id="auth-logged-out">
@@ -164,12 +165,12 @@
 
   <main class="container">
 
-    <!-- 0. 첫 화면 전용 (환영 문구) -->
+    <!-- 0. 첫 화면 전용 (환영 문구 + 타 도메인 연결) -->
     <section id="tab-welcome">
       <div class="landing-card">
-        <h1>👋 리셀 커뮤니티에 오신 것을 환영합니다!</h1>
-        <p>명품 감정 질문부터 정보까지 평균 시세 분석까지 지금 확인해보세요.</p>
-        <button class="btn-explore" onclick="navigateTo('appraisal')">둘러보기 ➔</button>
+        <h1>👋 RESELL HUB 커뮤니티에 오신 것을 환영합니다!</h1>
+        <p>1020 스니커즈, 명품 자율 감정 정보부터 실시간 커뮤니티를 이용해보세요.</p>
+        <button class="btn-explore" onclick="redirectToMainDomain()">둘러보기 ➔</button>
       </div>
     </section>
 
@@ -178,22 +179,11 @@
       <div class="notice-box">
         ⚠️ <b>감정 관련 안내:</b> 게시판 내 감정 소견은 사진 기반의 참고용 정보이며, 법적 보증 효력은 없습니다.
       </div>
-
       <div class="page-title">
         <h2>🔍 명품/굿즈 자율 감정 질문</h2>
         <button class="btn-write" onclick="openModal('write-appraisal')">+ 감정 질문하기</button>
       </div>
-
-      <div id="appraisal-posts">
-        <article class="post-card" onclick="openDetailModal('스니커즈초보123', '10분 전', '[자키/정품문의] 조던 1 로우 스캇 리버스 모카 정품 맞을까요?', '중고나라에서 65만원에 득템했는데 토박스 탭이랑 힐컵 자수가 약간 애매해서 문의드립니다. 사진 확인 부탁드려요!', '')">
-          <div class="post-header">
-            <span class="author">스니커즈초보123</span>
-            <span class="time">10분 전</span>
-          </div>
-          <h3 class="post-title">[자키/정품문의] 조던 1 로우 스캇 리버스 모카 정품 맞을까요?</h3>
-          <p class="post-body">중고나라에서 65만원에 득템했는데 토박스 탭이랑 힐컵 자수가 약간 애매해서 문의드립니다. 사진 확인 부탁드려요!</p>
-        </article>
-      </div>
+      <div id="appraisal-posts"></div>
     </section>
 
     <!-- 2. 인증된 명품샵 탭 -->
@@ -205,30 +195,47 @@
         <a href="https://kream.co.kr" target="_blank" class="shop-card">
           <div>
             <span class="shop-badge">공식 검증</span>
-            <h3 style="font-size: 1.2rem; margin-bottom: 0.5rem;">비어있음</h3>
-           
+            <h3 style="font-size: 1.2rem; margin-bottom: 0.5rem;">KREAM (크림)</h3>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">한정판 스니커즈 & 명품 정품 거래 플랫폼</p>
+          </div>
+          <span style="color: var(--accent-color); font-weight: bold; margin-top: 1rem; font-size: 0.85rem;">바로가기 ➔</span>
+        </a>
+        <a href="https://mustit.co.kr" target="_blank" class="shop-card">
+          <div>
             <span class="shop-badge">공식 검증</span>
-            <h3 style="font-size: 1.2rem; margin-bottom: 0.5rem;">비어있음</h3>
-        
-            <span class="shop-badge">공식 검증</span>
-            <h3 style="font-size: 1.2rem; margin-bottom: 0.5rem;">비어있음</h3>
-            
-    <!-- 5. 자유게시판 탭 -->
+            <h3 style="font-size: 1.2rem; margin-bottom: 0.5rem;">MUSTIT (머스트잇)</h3>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">대한민국 대표 명품 부티크 쇼핑몰</p>
+          </div>
+          <span style="color: var(--accent-color); font-weight: bold; margin-top: 1rem; font-size: 0.85rem;">바로가기 ➔</span>
+        </a>
+      </div>
+    </section>
+
+    <!-- 3. 자유게시판 탭 -->
     <section id="tab-free" class="hidden">
       <div class="page-title">
         <h2>💬 자유게시판</h2>
         <button class="btn-write" onclick="openModal('write-free')">+ 글쓰기</button>
       </div>
-      <div id="free-posts">
-        <div class="post-card" onclick="openDetailModal('리셀러1호', '1시간 전', '요즘 스니커즈 리셀 시장 분위기 어떤가요?', '실착러 위주로 바뀌면서 실사용 품목 위주로 거래가 활발하네요.', '')">
-          <div class="post-header">
-            <span class="author">리셀러1호</span>
-            <span class="time">1시간 전</span>
-          </div>
-          <h3 class="post-title">요즘 스니커즈 리셀 시장 분위기 어떤가요?</h3>
-          <p class="post-body">실착러 위주로 바뀌면서 실사용 품목 위주로 거래가 활발하네요.</p>
-        </div>
+      <div id="free-posts"></div>
+    </section>
+
+    <!-- 4. 관리자 전용 대시보드 탭 -->
+    <section id="tab-admin" class="hidden">
+      <div class="page-title">
+        <h2 style="color: var(--expert-gold);">⚙️ 게시글 통합 관리 (어드민)</h2>
       </div>
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>제목</th>
+            <th>작성일시</th>
+            <th>관리</th>
+          </tr>
+        </thead>
+        <tbody id="admin-post-list"></tbody>
+      </table>
     </section>
   </main>
 
@@ -291,38 +298,40 @@
   </div>
 
   <script>
+    const MAIN_SITE_URL = "https://resell-main.com"; 
+    // ------------------------------------------------------------------------
+    // [설정] 어드민 권한을 부여할 본인의 이메일 주소를 적어주세요.
+    // ------------------------------------------------------------------------
+    const ADMIN_EMAIL = "angjeseo@kakao.com"; 
+
     const SUPABASE_URL = 'https://wnekidpaiqkdxcovxckz.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_0ntmu7elx6JF7gnKVRac6Q_gngQijPi';
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let currentUser = null;
 
     window.addEventListener('DOMContentLoaded', async () => {
       checkAuthSession();
       fetchPosts();
       supabaseClient.auth.onAuthStateChange((_event, session) => updateAuthUI(session));
-
-      // 초기에 URL 해시에 맞는 탭 렌더링
       handleHashChange();
     });
 
-    // 브라우저 URL 해시 변동 감지 이벤트
     window.addEventListener('hashchange', handleHashChange);
 
-    // URL 변경 제어 함수 (클릭 시 URL 변경)
-    function navigateTo(tabName) {
-      if (tabName === 'welcome') {
-        location.hash = '';
-      } else {
-        location.hash = tabName;
-      }
+    function redirectToMainDomain() {
+      window.location.href = MAIN_SITE_URL;
     }
 
-    // 현재 URL의 해시값(#)을 분석하여 화면 탭 전환
+    function navigateToWelcome() { location.hash = ''; }
+    function navigateTo(tabName) { location.hash = tabName; }
+
     function handleHashChange() {
       const hash = location.hash.replace('#', '');
-      const validTabs = ['appraisal', 'shops', 'market', 'deal', 'free'];
+      const validTabs = ['appraisal', 'shops', 'free', 'admin'];
       const currentTab = validTabs.includes(hash) ? hash : 'welcome';
 
-      const tabs = ['welcome', 'appraisal', 'shops', 'market', 'deal', 'free'];
+      const tabs = ['welcome', 'appraisal', 'shops', 'free', 'admin'];
       tabs.forEach(tab => {
         const navEl = document.getElementById(`nav-${tab}`);
         const tabEl = document.getElementById(`tab-${tab}`);
@@ -332,7 +341,6 @@
       });
     }
 
-    // 사진 등록 처리
     function handleFileSelect(fileInput, urlInputId, previewImgId) {
       const file = fileInput.files[0];
       if (file) {
@@ -357,7 +365,6 @@
       }
     }
 
-    // 상세보기 모달
     function openDetailModal(author, time, title, content, imageUrl) {
       document.getElementById('detail-title').innerText = title;
       document.getElementById('detail-author').innerText = '작성자: ' + author;
@@ -378,7 +385,6 @@
       document.getElementById('full-detail-modal').classList.add('hidden');
     }
 
-    // 팝업 모달
     function openModal(type) {
       document.getElementById('modal-overlay').classList.remove('hidden');
       ['login', 'signup', 'write-appraisal', 'write-free'].forEach(m => {
@@ -390,16 +396,24 @@
       document.getElementById('modal-overlay').classList.add('hidden');
     }
 
-    // Supabase 연동
     async function checkAuthSession() {
       const { data: { session } } = await supabaseClient.auth.getSession();
       updateAuthUI(session);
     }
 
     function updateAuthUI(session) {
+      currentUser = session ? session.user : null;
       document.getElementById('auth-logged-out').classList.toggle('hidden', !!session);
       document.getElementById('auth-logged-in').classList.toggle('hidden', !session);
       document.getElementById('user-email-display').innerText = session ? session.user.email : '';
+
+      // 어드민 계정일 경우 메뉴 표시
+      const adminNav = document.getElementById('nav-admin');
+      if (currentUser && currentUser.email === ADMIN_EMAIL) {
+        adminNav.classList.remove('hidden');
+      } else {
+        adminNav.classList.add('hidden');
+      }
     }
 
     async function handleSignUp() {
@@ -423,9 +437,9 @@
     async function handleLogout() {
       await supabaseClient.auth.signOut();
       alert('로그아웃되었습니다.');
+      navigateToWelcome();
     }
 
-    // 글 등록
     async function handleWritePost(type) {
       const isAppraisal = type === 'appraisal';
       const titleInput = isAppraisal ? document.getElementById('appraisal-title-input') : document.getElementById('free-title-input');
@@ -459,12 +473,38 @@
 
       const appraisalContainer = document.getElementById('appraisal-posts');
       const freeContainer = document.getElementById('free-posts');
+      const adminContainer = document.getElementById('admin-post-list');
 
       const appraisalPosts = posts.filter(p => p.title.startsWith('[감정요청]'));
       const freePosts = posts.filter(p => !p.title.startsWith('[감정요청]'));
 
-      if (appraisalPosts.length > 0) appraisalContainer.innerHTML = appraisalPosts.map(p => renderPostCard(p)).join('');
-      if (freePosts.length > 0) freeContainer.innerHTML = freePosts.map(p => renderPostCard(p)).join('');
+      if (appraisalContainer) appraisalContainer.innerHTML = appraisalPosts.map(p => renderPostCard(p)).join('');
+      if (freeContainer) freeContainer.innerHTML = freePosts.map(p => renderPostCard(p)).join('');
+
+      // 어드민 전용 목록 렌더링
+      if (adminContainer) {
+        adminContainer.innerHTML = posts.map(p => `
+          <tr>
+            <td>${p.id}</td>
+            <td>${escapeHtml(p.title)}</td>
+            <td>${new Date(p.created_at).toLocaleString()}</td>
+            <td><button class="btn-delete" onclick="deletePostByAdmin(${p.id})">삭제</button></td>
+          </tr>
+        `).join('');
+      }
+    }
+
+    // 관리자 전용 삭제 함수
+    async function deletePostByAdmin(postId) {
+      if (!confirm('정말 이 게시글을 삭제하시겠습니까?')) return;
+
+      const { error } = await supabaseClient.from('posts').delete().eq('id', postId);
+      if (error) {
+        alert('삭제 실패: ' + error.message);
+      } else {
+        alert('게시글이 삭제되었습니다.');
+        fetchPosts();
+      }
     }
 
     function renderPostCard(post) {
