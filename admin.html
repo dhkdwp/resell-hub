@@ -188,22 +188,27 @@
 
     // ★ Supabase 삭제 로직 수정 완료
     async function deletePost(postId) {
-      if (!confirm('정말 이 게시글을 삭제하시겠습니까?')) return;
-      
-      try {
-        const { error } = await supabaseClient.from('posts').delete().eq('id', postId);
-        
-        if (error) {
-          alert('삭제 실패: ' + error.message);
-        } else { 
-          alert('게시글이 DB에서 정상 삭제되었습니다.'); 
-          fetchPosts(); // 목록 재갱신
-        }
-      } catch (err) {
-        alert('삭제 처리 도중 에러가 발생했습니다.');
-        console.error(err);
-      }
+  if (!confirm('정말 이 게시글을 삭제하시겠습니까?')) return;
+
+  try {
+    // SDK를 통한 DELETE 요청 (URL 경로 오류 방지)
+    const { data, error } = await supabaseClient
+      .from('posts')
+      .delete()
+      .eq('id', postId);
+
+    if (error) {
+      console.error('Supabase Delete Error:', error);
+      alert(`삭제 실패: ${error.message}`);
+    } else {
+      alert('성공적으로 삭제되었습니다.');
+      fetchPosts(); // 테이블 목록 새로고침
     }
+  } catch (err) {
+    console.error('Network Error:', err);
+    alert('통신 중 에러가 발생했습니다.');
+  }
+}
 
     function openEditModal(postId) {
       const post = allPostsData.find(p => p.id === postId);
