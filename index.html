@@ -1,80 +1,532 @@
-// 1. 게시글 분류 및 렌더링 로직 보완
-async function fetchPosts() {
-  const { data: posts, error } = await supabaseClient
-    .from('posts')
-    .select('*')
-    .order('created_at', { ascending: false });
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>RESELL HUB - 1020 리셀 & 명품 감정 커뮤니티</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --bg-color: #fcfaf7;
+      --card-bg: #ffffff;
+      --accent-color: #8c7355;
+      --accent-hover: #6e5940;
+      --expert-gold: #d4a373;
+      --danger-color: #e63946;
+      --text-main: #332c27;
+      --text-muted: #7f756b;
+      --border-color: #eee8e0;
+      --shadow-color: rgba(140, 115, 85, 0.08);
+    }
 
-  if (error || !posts) return;
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Pretendard', -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
+    body { background-color: var(--bg-color); color: var(--text-main); line-height: 1.5; overflow-x: hidden; }
 
-  const appraisalContainer = document.getElementById('appraisal-posts');
-  const freeContainer = document.getElementById('free-posts');
+    header {
+      display: flex; flex-direction: column; gap: 0.8rem;
+      padding: 1rem 1.2rem; background-color: rgba(252, 250, 247, 0.95);
+      border-bottom: 1px solid var(--border-color); position: sticky; top: 0; z-index: 100;
+      backdrop-filter: blur(8px);
+    }
+    
+    .header-top { display: flex; justify-content: space-between; align-items: center; width: 100%; }
+    .logo { font-size: 1.3rem; font-weight: 800; color: var(--accent-color); letter-spacing: -0.5px; cursor: pointer; }
+    
+    .nav-links { display: flex; gap: 1rem; overflow-x: auto; white-space: nowrap; width: 100%; padding-bottom: 2px; -webkit-overflow-scrolling: touch; }
+    .nav-links::-webkit-scrollbar { display: none; }
+    .nav-links a { color: var(--text-muted); text-decoration: none; font-size: 0.9rem; font-weight: 500; cursor: pointer; flex-shrink: 0; }
+    .nav-links a:hover, .nav-links a.active { color: var(--accent-color); font-weight: 700; border-bottom: 2px solid var(--accent-color); padding-bottom: 2px; }
+    
+    .auth-btns { display: flex; align-items: center; gap: 0.4rem; }
+    .auth-btns .btn { padding: 0.4rem 0.8rem; border-radius: 6px; border: none; font-size: 0.8rem; font-weight: 600; cursor: pointer; }
+    .btn-login { background: transparent; color: var(--text-main); border: 1px solid var(--border-color); }
+    .btn-signup { background: var(--accent-color); color: white; }
+    .btn-logout { background: var(--danger-color); color: white; }
+    .btn-admin-link { background: var(--expert-gold); color: white; font-weight: 700; text-decoration: none; padding: 0.4rem 0.8rem; border-radius: 6px; font-size: 0.8rem; }
 
-  // 공지사항 상단 고정 정렬
-  const sortedPosts = posts.sort((a, b) => {
-    const aIsNotice = a.title.includes('[공지]');
-    const bIsNotice = b.title.includes('[공지]');
-    if (aIsNotice && !bIsNotice) return -1;
-    if (!aIsNotice && bIsNotice) return 1;
-    return new Date(b.created_at) - new Date(a.created_at);
-  });
+    .container { max-width: 1000px; margin: 1rem auto; padding: 0 1rem; }
+    .page-title { margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center; }
+    .page-title h2 { font-size: 1.2rem; font-weight: 700; color: var(--text-main); }
 
-  // ★ 확실한 필터링 분기 처리
-  // 명품 감정 탭: [감정요청]이 포함된 글 + [감정요청]이 포함된 공지글
-  const appraisalPosts = sortedPosts.filter(p => p.title.includes('[감정요청]'));
+    .landing-card {
+      background: linear-gradient(rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.7)), url('bg-welcome.jpg') center/cover no-repeat;
+      border: 1px solid var(--border-color);
+      padding: 3.5rem 1.2rem; border-radius: 16px; text-align: center; margin: 1rem 0;
+      box-shadow: 0 8px 24px var(--shadow-color);
+    }
+    .landing-card h1 { font-size: 1.8rem; color: #4a3f35; margin-bottom: 0.8rem; font-weight: 800; letter-spacing: -0.5px; }
+    .landing-card p { font-size: 0.95rem; color: var(--text-muted); margin-bottom: 1.8rem; font-weight: 500; word-break: keep-all; }
+    .btn-explore {
+      background-color: var(--accent-color); color: white; padding: 0.8rem 2rem;
+      border-radius: 30px; font-size: 1rem; font-weight: 700; cursor: pointer; border: none;
+      box-shadow: 0 4px 15px rgba(140, 115, 85, 0.2); transition: transform 0.2s, background-color 0.2s;
+    }
+    .btn-explore:active { transform: scale(0.98); }
 
-  // 자유게시판 탭: [감정요청]이 포함되지 않은 나머지 모든 글 (자유글, 순수 공지글)
-  const freePosts = sortedPosts.filter(p => !p.title.includes('[감정요청]'));
+    .notice-box {
+      background: #fffdfa; border: 1px solid var(--expert-gold);
+      padding: 0.8rem 1rem; border-radius: 10px; font-size: 0.8rem; color: #a3723f; margin-bottom: 1.2rem; line-height: 1.4;
+    }
 
-  if (appraisalContainer) {
-    appraisalContainer.innerHTML = appraisalPosts.length > 0 
-      ? appraisalPosts.map(p => renderPostCard(p, 'appraisal')).join('')
-      : '<p style="color:var(--text-muted); text-align:center; padding:2rem 0;">등록된 감정 질문이 없습니다.</p>';
-  }
+    .post-card {
+      background-color: var(--card-bg); border: 1px solid var(--border-color);
+      border-radius: 12px; padding: 1.1rem; margin-bottom: 0.8rem; transition: transform 0.2s;
+      box-shadow: 0 2px 6px var(--shadow-color); cursor: pointer;
+    }
+    .post-card.notice-pinned {
+      border: 1px solid var(--expert-gold);
+      background: linear-gradient(135deg, #fffdf9, #ffffff);
+    }
+    .post-header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.4rem; }
+    .author { font-weight: 600; font-size: 0.85rem; color: var(--accent-color); }
+    .time { font-size: 0.75rem; color: var(--text-muted); margin-left: auto; }
+    .post-title { font-size: 1rem; font-weight: 700; margin-bottom: 0.4rem; display: flex; align-items: center; gap: 0.4rem; color: var(--text-main); word-break: break-all; }
+    .post-body { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.6rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .post-img-thumb { width: 100%; max-height: 180px; object-fit: cover; border-radius: 8px; margin-bottom: 0.6rem; border: 1px solid var(--border-color); }
+    
+    .badge-notice { background: var(--expert-gold); color: #fff; font-size: 0.7rem; padding: 0.1rem 0.4rem; border-radius: 4px; font-weight: bold; flex-shrink: 0; }
 
-  if (freeContainer) {
-    freeContainer.innerHTML = freePosts.length > 0 
-      ? freePosts.map(p => renderPostCard(p, 'free')).join('')
-      : '<p style="color:var(--text-muted); text-align:center; padding:2rem 0;">등록된 게시글이 없습니다.</p>';
-  }
-}
+    .shop-grid { display: grid; grid-template-columns: 1fr; gap: 0.8rem; }
+    .shop-card {
+      background-color: var(--card-bg); border: 1px solid var(--border-color);
+      border-radius: 12px; padding: 1.2rem; text-decoration: none; color: var(--text-main);
+      display: flex; flex-direction: column; justify-content: space-between;
+      box-shadow: 0 2px 6px var(--shadow-color);
+    }
+    .shop-badge { background: #fdf8f2; color: var(--accent-color); border: 1px solid var(--border-color); font-size: 0.7rem; padding: 0.15rem 0.4rem; border-radius: 4px; width: fit-content; margin-bottom: 0.4rem; font-weight: bold; }
 
-// 2. 카드 UI 출력 함수
-function renderPostCard(post, currentTab) {
-  const isNotice = post.title.includes('[공지]');
-  
-  // 제목에서 머리말 태그만 깔끔하게 제거
-  const cleanTitle = post.title
-    .replace('[공지]', '')
-    .replace('[감정요청]', '')
-    .replace('[자유]', '')
-    .trim();
-  
-  let bodyText = post.content;
-  let imageUrl = '';
+    .btn-write {
+      background-color: var(--accent-color); color: white; padding: 0.5rem 0.9rem;
+      border-radius: 8px; text-decoration: none; font-size: 0.85rem; font-weight: 600; cursor: pointer; border: none; flex-shrink: 0;
+    }
+    .hidden { display: none !important; }
 
-  if (post.content.includes('[IMG_URL]:')) {
-    const parts = post.content.split('\n\n[IMG_URL]:');
-    bodyText = parts[0];
-    imageUrl = parts[1];
-  }
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(51, 44, 39, 0.4); backdrop-filter: blur(4px); display: flex; justify-content: center; align-items: center; z-index: 200; padding: 1rem;
+    }
+    .modal-content {
+      background-color: var(--card-bg); border: 1px solid var(--border-color);
+      border-radius: 16px; padding: 1.5rem; width: 100%; max-width: 450px; position: relative; max-height: 85vh; overflow-y: auto;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    }
+    .modal-close { position: absolute; top: 1rem; right: 1rem; background: none; border: none; color: var(--text-muted); font-size: 1.3rem; cursor: pointer; }
+    .modal-title { font-size: 1.15rem; font-weight: 700; margin-bottom: 1.2rem; text-align: center; color: var(--text-main); }
+    .form-group { margin-bottom: 0.8rem; }
+    .form-group label { display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.3rem; }
+    .form-group input, .form-group textarea {
+      width: 100%; padding: 0.65rem; background: var(--bg-color); border: 1px solid var(--border-color);
+      border-radius: 8px; color: var(--text-main); font-size: 0.85rem; outline: none;
+    }
+    .btn-submit {
+      width: 100%; padding: 0.7rem; background: var(--accent-color); color: white;
+      border: none; border-radius: 8px; font-weight: 700; font-size: 0.9rem; cursor: pointer; margin-top: 0.4rem;
+    }
+    .user-profile { font-size: 0.75rem; color: var(--text-muted); max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-  const safeTitle = escapeHtml(cleanTitle);
-  const safeContent = escapeHtml(bodyText);
-  const dateStr = new Date(post.created_at).toLocaleDateString();
+    .full-modal-overlay {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      background: var(--bg-color); z-index: 300; display: flex; flex-direction: column; overflow-y: auto;
+    }
+    .full-modal-header {
+      padding: 1rem; border-bottom: 1px solid var(--border-color); display: flex;
+      justify-content: space-between; align-items: center; position: sticky; top: 0; background: var(--bg-color); z-index: 10;
+    }
+    .full-modal-body { width: 100%; margin: 1rem auto; padding: 0 1rem; }
+    .full-modal-title { font-size: 1.3rem; font-weight: 800; margin-bottom: 0.8rem; color: var(--text-main); word-break: break-all; }
+    .full-modal-meta { display: flex; gap: 0.8rem; color: var(--text-muted); font-size: 0.8rem; margin-bottom: 1.2rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.8rem; }
+    .full-modal-image { width: 100%; max-height: 350px; object-fit: contain; border-radius: 10px; margin-bottom: 1.2rem; background: #fff; border: 1px solid var(--border-color); }
+    .full-modal-content { font-size: 0.95rem; line-height: 1.7; color: var(--text-main); white-space: pre-line; word-break: break-all; }
 
-  return `
-    <article class="post-card ${isNotice ? 'notice-pinned' : ''}" onclick="openDetailModal('${isNotice ? '👑 관리자' : '익명유저'}', '${dateStr}', '${safeTitle.replace(/'/g, "\\'")}', '${safeContent.replace(/'/g, "\\'").replace(/\n/g, "\\n")}', '${imageUrl.replace(/'/g, "\\\'")}')">
-      <div class="post-header">
-        <span class="author" style="${isNotice ? 'color:var(--expert-gold);' : ''}">${isNotice ? '👑 관리자' : '익명유저'}</span>
-        <span class="time">${dateStr}</span>
+    @media (min-width: 769px) {
+      header { flex-direction: row; justify-content: space-between; padding: 1rem 2rem; }
+      .header-top { width: auto; }
+      .nav-links { width: auto; overflow-x: visible; }
+      .nav-links a { margin-left: 1.5rem; }
+      .shop-grid { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+      .landing-card { padding: 5rem 2rem; border-radius: 20px; }
+      .landing-card h1 { font-size: 2.2rem; }
+      .landing-card p { font-size: 1.1rem; }
+      .full-modal-body { max-width: 800px; padding: 0 1.5rem; }
+      .full-modal-title { font-size: 1.8rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-top">
+      <div class="logo" onclick="navigateToWelcome()">RESELL HUB</div>
+      <div class="auth-btns">
+        <div id="auth-logged-out">
+          <button class="btn btn-login" onclick="openModal('login')">로그인</button>
+          <button class="btn btn-signup" onclick="openModal('signup')">회원가입</button>
+        </div>
+        <div id="auth-logged-in" class="hidden" style="display:flex; align-items:center;">
+          <span class="user-profile" id="user-email-display"></span>
+          <a id="btn-admin-page" href="admin.html" class="btn-admin-link hidden">⚙️ 어드민</a>
+          <button class="btn btn-logout" onclick="handleLogout()">로그아웃</button>
+        </div>
       </div>
-      <h3 class="post-title">
-        ${isNotice ? '<span class="badge-notice">공지</span>' : ''}
-        ${safeTitle}
-      </h3>
-      ${imageUrl ? `<img src="${imageUrl}" class="post-img-thumb">` : ''}
-      <p class="post-body">${safeContent}</p>
-    </article>
-  `;
-}
+    </div>
+    
+    <nav class="nav-links">
+      <a id="nav-appraisal" onclick="navigateTo('appraisal')">명품 감정 탭</a>
+      <a id="nav-shops" onclick="navigateTo('shops')">인증된 명품샵</a>
+      <a id="nav-free" onclick="navigateTo('free')">자유게시판</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    <section id="tab-welcome">
+      <div class="landing-card">
+        <h1>RESELL HUB</h1>
+        <p>1020 스니커즈, 명품 자율 감정 정보부터 실시간 커뮤니티를 이용해보세요.</p>
+        <button class="btn-explore" onclick="redirectToMainDomain()">둘러보기 ➔</button>
+      </div>
+    </section>
+
+    <section id="tab-appraisal" class="hidden">
+      <div class="notice-box">
+        ⚠️ <b>감정 관련 안내:</b> 게시판 내 감정 소견은 사진 기반의 참고용 정보이며, 법적 보증 효력은 없습니다.
+      </div>
+      <div class="page-title">
+        <h2>🔍 명품/굿즈 감정 질문</h2>
+        <button class="btn-write" onclick="openModal('write-appraisal')">+ 질문하기</button>
+      </div>
+      <div id="appraisal-posts"></div>
+    </section>
+
+    <section id="tab-shops" class="hidden">
+      <div class="page-title">
+        <h2>🛍️ 공식 인증 명품샵 목록</h2>
+      </div>
+      <div class="shop-grid">
+        <a href="https://kream.co.kr" target="_blank" class="shop-card">
+          <div>
+            <span class="shop-badge">공식 검증</span>
+            <h3 style="font-size: 1.1rem; margin-bottom: 0.4rem;">KREAM (크림)</h3>
+            <p style="font-size: 0.8rem; color: var(--text-muted);">한정판 스니커즈 & 명품 정품 거래 플랫폼</p>
+          </div>
+          <span style="color: var(--accent-color); font-weight: bold; margin-top: 0.8rem; font-size: 0.8rem;">바로가기 ➔</span>
+        </a>
+        <a href="https://mustit.co.kr" target="_blank" class="shop-card">
+          <div>
+            <span class="shop-badge">공식 검증</span>
+            <h3 style="font-size: 1.1rem; margin-bottom: 0.4rem;">MUSTIT (머스트잇)</h3>
+            <p style="font-size: 0.8rem; color: var(--text-muted);">대한민국 대표 명품 부티크 쇼핑몰</p>
+          </div>
+          <span style="color: var(--accent-color); font-weight: bold; margin-top: 0.8rem; font-size: 0.8rem;">바로가기 ➔</span>
+        </a>
+      </div>
+    </section>
+
+    <section id="tab-free" class="hidden">
+      <div class="page-title">
+        <h2>💬 자유게시판</h2>
+        <button class="btn-write" onclick="openModal('write-free')">+ 글쓰기</button>
+      </div>
+      <div id="free-posts"></div>
+    </section>
+  </main>
+
+  <div id="full-detail-modal" class="full-modal-overlay hidden">
+    <div class="full-modal-header">
+      <div class="logo">RESELL HUB</div>
+      <button class="btn-write" onclick="closeDetailModal()">닫기 ✕</button>
+    </div>
+    <div class="full-modal-body">
+      <h1 id="detail-title" class="full-modal-title">게시글 제목</h1>
+      <div class="full-modal-meta">
+        <span id="detail-author">작성자: 익명</span>
+        <span id="detail-time">작성일: -</span>
+      </div>
+      <img id="detail-image" class="full-modal-image hidden" src="" alt="첨부 이미지">
+      <div id="detail-content" class="full-modal-content">게시글 본문 내용입니다.</div>
+    </div>
+  </div>
+
+  <div id="modal-overlay" class="modal-overlay hidden">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeModal()">✕</button>
+      
+      <div id="modal-login-form" class="hidden">
+        <h3 class="modal-title">로그인</h3>
+        <div class="form-group"><label>이메일</label><input type="email" id="login-email" placeholder="example@email.com"></div>
+        <div class="form-group"><label>비밀번호</label><input type="password" id="login-password" placeholder="비밀번호 입력"></div>
+        <button class="btn-submit" onclick="handleLogin()">로그인</button>
+      </div>
+
+      <div id="modal-signup-form" class="hidden">
+        <h3 class="modal-title">회원가입</h3>
+        <div class="form-group"><label>이메일</label><input type="email" id="signup-email" placeholder="example@email.com"></div>
+        <div class="form-group"><label>비밀번호</label><input type="password" id="signup-password" placeholder="비밀번호 입력"></div>
+        <button class="btn-submit" onclick="handleSignUp()">가입완료</button>
+      </div>
+
+      <div id="modal-write-appraisal-form" class="hidden">
+        <h3 class="modal-title">감정 질문 등록</h3>
+        <div class="form-group"><label>제목</label><input type="text" id="appraisal-title-input" placeholder="[브랜드/제품명] 정품 문의"></div>
+        <div class="form-group"><label>내용</label><textarea id="appraisal-content-input" rows="4" placeholder="구매처, 가격, 상태 설명"></textarea></div>
+        <div class="form-group"><label>사진 등록</label><input type="text" id="appraisal-image-input" placeholder="https://example.com/image.jpg" onchange="previewImage(this, 'appraisal-preview')"><input type="file" accept="image/*" style="margin-top:5px;" onchange="handleFileSelect(this, 'appraisal-image-input', 'appraisal-preview')"><img id="appraisal-preview" class="post-img-thumb hidden" style="margin-top:10px;"></div>
+        <button class="btn-submit" onclick="handleWritePost('appraisal')">질문 등록하기</button>
+      </div>
+
+      <div id="modal-write-free-form" class="hidden">
+        <h3 class="modal-title">자유글 작성</h3>
+        <div class="form-group"><label>제목</label><input type="text" id="free-title-input" placeholder="제목 입력"></div>
+        <div class="form-group"><label>내용</label><textarea id="free-content-input" rows="4" placeholder="내용 입력"></textarea></div>
+        <div class="form-group"><label>사진 등록</label><input type="text" id="free-image-input" placeholder="https://example.com/image.jpg" onchange="previewImage(this, 'free-preview')"><input type="file" accept="image/*" style="margin-top:5px;" onchange="handleFileSelect(this, 'free-image-input', 'free-preview')"><img id="free-preview" class="post-img-thumb hidden" style="margin-top:10px;"></div>
+        <button class="btn-submit" onclick="handleWritePost('free')">등록하기</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const MAIN_SITE_URL = "https://kream.co.kr"; 
+    const ADMIN_EMAIL = "angjeseo@kakao.com"; 
+
+    const SUPABASE_URL = 'https://wnekidpaiqkdxcovxckz.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_0ntmu7elx6JF7gnKVRac6Q_gngQijPi';
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let currentUser = null;
+
+    window.addEventListener('DOMContentLoaded', async () => {
+      checkAuthSession();
+      fetchPosts();
+      supabaseClient.auth.onAuthStateChange((_event, session) => updateAuthUI(session));
+      handleHashChange();
+    });
+
+    window.addEventListener('hashchange', handleHashChange);
+
+    function redirectToMainDomain() {
+      if (MAIN_SITE_URL && MAIN_SITE_URL.startsWith("http")) {
+        window.location.assign(MAIN_SITE_URL);
+      } else {
+        alert("이동할 사이트 주소가 올바르지 않습니다.");
+      }
+    }
+
+    function navigateToWelcome() { location.hash = ''; }
+    function navigateTo(tabName) { location.hash = tabName; }
+
+    function handleHashChange() {
+      const hash = location.hash.replace('#', '');
+      const validTabs = ['appraisal', 'shops', 'free'];
+      const currentTab = validTabs.includes(hash) ? hash : 'welcome';
+
+      const tabs = ['welcome', 'appraisal', 'shops', 'free'];
+      tabs.forEach(tab => {
+        const navEl = document.getElementById(`nav-${tab}`);
+        const tabEl = document.getElementById(`tab-${tab}`);
+        if (navEl) navEl.classList.toggle('active', tab === currentTab);
+        if (tabEl) tabEl.classList.toggle('hidden', tab !== currentTab);
+      });
+    }
+
+    function handleFileSelect(fileInput, urlInputId, previewImgId) {
+      const file = fileInput.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          document.getElementById(urlInputId).value = e.target.result;
+          const previewImg = document.getElementById(previewImgId);
+          previewImg.src = e.target.result;
+          previewImg.classList.remove('hidden');
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function previewImage(inputEl, previewImgId) {
+      const previewImg = document.getElementById(previewImgId);
+      if (inputEl.value) {
+        previewImg.src = inputEl.value;
+        previewImg.classList.remove('hidden');
+      } else {
+        previewImg.classList.add('hidden');
+      }
+    }
+
+    function openDetailModal(author, time, title, content, imageUrl) {
+      document.getElementById('detail-title').innerText = title;
+      document.getElementById('detail-author').innerText = '작성자: ' + author;
+      document.getElementById('detail-time').innerText = '작성일: ' + time;
+      document.getElementById('detail-content').innerText = content;
+
+      const imgEl = document.getElementById('detail-image');
+      if (imageUrl && imageUrl.trim() !== '') {
+        imgEl.src = imageUrl;
+        imgEl.classList.remove('hidden');
+      } else {
+        imgEl.classList.add('hidden');
+      }
+      document.getElementById('full-detail-modal').classList.remove('hidden');
+    }
+
+    function closeDetailModal() {
+      document.getElementById('full-detail-modal').classList.add('hidden');
+    }
+
+    function openModal(type) {
+      document.getElementById('modal-overlay').classList.remove('hidden');
+      ['login', 'signup', 'write-appraisal', 'write-free'].forEach(m => {
+        document.getElementById(`modal-${m}-form`).classList.toggle('hidden', m !== type);
+      });
+    }
+
+    function closeModal() {
+      document.getElementById('modal-overlay').classList.add('hidden');
+    }
+
+    async function checkAuthSession() {
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      updateAuthUI(session);
+    }
+
+    function updateAuthUI(session) {
+      currentUser = session ? session.user : null;
+      const isAdmin = currentUser && currentUser.email === ADMIN_EMAIL;
+
+      document.getElementById('auth-logged-out').classList.toggle('hidden', !!session);
+      document.getElementById('auth-logged-in').classList.toggle('hidden', !session);
+      document.getElementById('user-email-display').innerText = session ? session.user.email : '';
+      document.getElementById('btn-admin-page').classList.toggle('hidden', !isAdmin);
+    }
+
+    async function handleSignUp() {
+      const email = document.getElementById('signup-email').value;
+      const password = document.getElementById('signup-password').value;
+      if (!email || !password) return alert('이메일과 비밀번호를 입력해주세요.');
+      const { error } = await supabaseClient.auth.signUp({ email, password });
+      if (error) alert('회원가입 실패: ' + error.message);
+      else { alert('회원가입 완료!'); closeModal(); }
+    }
+
+    async function handleLogin() {
+      const email = document.getElementById('login-email').value;
+      const password = document.getElementById('login-password').value;
+      if (!email || !password) return alert('이메일과 비밀번호를 입력해주세요.');
+      const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+      if (error) alert('로그인 실패: ' + error.message);
+      else { alert('로그인되었습니다!'); closeModal(); }
+    }
+
+    async function handleLogout() {
+      await supabaseClient.auth.signOut();
+      alert('로그아웃되었습니다.');
+      navigateToWelcome();
+    }
+
+    async function handleWritePost(type) {
+      const isAppraisal = type === 'appraisal';
+      const titleInput = isAppraisal ? document.getElementById('appraisal-title-input') : document.getElementById('free-title-input');
+      const contentInput = isAppraisal ? document.getElementById('appraisal-content-input') : document.getElementById('free-content-input');
+      const imageInput = isAppraisal ? document.getElementById('appraisal-image-input') : document.getElementById('free-image-input');
+
+      if (!titleInput.value || !contentInput.value) return alert('제목과 내용을 입력해 주세요.');
+
+      let prefix = isAppraisal ? '[감정요청] ' : '[자유] ';
+      let fullContent = contentInput.value;
+      if (imageInput.value) {
+        fullContent += `\n\n[IMG_URL]:${imageInput.value}`;
+      }
+
+      const { error } = await supabaseClient
+        .from('posts')
+        .insert([{ title: prefix + titleInput.value, content: fullContent }]);
+
+      if (error) alert('글 등록 실패: ' + error.message);
+      else {
+        alert('성공적으로 등록되었습니다.');
+        titleInput.value = ''; contentInput.value = ''; imageInput.value = '';
+        closeModal();
+        fetchPosts();
+      }
+    }
+
+    // ★ 게시판 분류 로직 보완 (자유 / 감정 완벽 분리)
+    async function fetchPosts() {
+      const { data: posts, error } = await supabaseClient
+        .from('posts')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error || !posts) return;
+
+      const appraisalContainer = document.getElementById('appraisal-posts');
+      const freeContainer = document.getElementById('free-posts');
+
+      const sortedPosts = posts.sort((a, b) => {
+        const aIsNotice = a.title.includes('[공지]');
+        const bIsNotice = b.title.includes('[공지]');
+        if (aIsNotice && !bIsNotice) return -1;
+        if (!aIsNotice && bIsNotice) return 1;
+        return new Date(b.created_at) - new Date(a.created_at);
+      });
+
+      // 명품 감정 탭: [감정요청] 포함글
+      const appraisalPosts = sortedPosts.filter(p => p.title.includes('[감정요청]'));
+
+      // 자유게시판: [감정요청] 미포함글
+      const freePosts = sortedPosts.filter(p => !p.title.includes('[감정요청]'));
+
+      if (appraisalContainer) {
+        appraisalContainer.innerHTML = appraisalPosts.length > 0 
+          ? appraisalPosts.map(p => renderPostCard(p)).join('')
+          : '<p style="color:var(--text-muted); text-align:center; padding:2rem 0;">등록된 감정 질문이 없습니다.</p>';
+      }
+
+      if (freeContainer) {
+        freeContainer.innerHTML = freePosts.length > 0 
+          ? freePosts.map(p => renderPostCard(p)).join('')
+          : '<p style="color:var(--text-muted); text-align:center; padding:2rem 0;">등록된 게시글이 없습니다.</p>';
+      }
+    }
+
+    function renderPostCard(post) {
+      const isNotice = post.title.includes('[공지]');
+      const cleanTitle = post.title
+        .replace('[공지]', '')
+        .replace('[감정요청]', '')
+        .replace('[자유]', '')
+        .trim();
+      
+      let bodyText = post.content;
+      let imageUrl = '';
+
+      if (post.content.includes('[IMG_URL]:')) {
+        const parts = post.content.split('\n\n[IMG_URL]:');
+        bodyText = parts[0];
+        imageUrl = parts[1];
+      }
+
+      const safeTitle = escapeHtml(cleanTitle);
+      const safeContent = escapeHtml(bodyText);
+      const dateStr = new Date(post.created_at).toLocaleDateString();
+
+      return `
+        <article class="post-card ${isNotice ? 'notice-pinned' : ''}" onclick="openDetailModal('${isNotice ? '👑 관리자' : '익명유저'}', '${dateStr}', '${safeTitle.replace(/'/g, "\\'")}', '${safeContent.replace(/'/g, "\\'").replace(/\n/g, "\\n")}', '${imageUrl.replace(/'/g, "\\'")}')">
+          <div class="post-header">
+            <span class="author" style="${isNotice ? 'color:var(--expert-gold);' : ''}">${isNotice ? '👑 관리자' : '익명유저'}</span>
+            <span class="time">${dateStr}</span>
+          </div>
+          <h3 class="post-title">
+            ${isNotice ? '<span class="badge-notice">공지</span>' : ''}
+            ${safeTitle}
+          </h3>
+          ${imageUrl ? `<img src="${imageUrl}" class="post-img-thumb">` : ''}
+          <p class="post-body">${safeContent}</p>
+        </article>
+      `;
+    }
+
+    function escapeHtml(text) {
+      if (!text) return '';
+      return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+  </script>
+</body>
+</html>
