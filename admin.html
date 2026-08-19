@@ -177,48 +177,57 @@
     }
 
     // 게시글 삭제 기능
-    async function deletePost(postId) {
-      if (!confirm('정말 이 게시글을 삭제하시겠습니까?')) return;
-      const { error } = await supabaseClient.from('posts').delete().eq('id', postId);
-      if (error) alert('삭제 실패: ' + error.message);
-      else { 
-        alert('게시글이 삭제되었습니다.'); 
-        fetchPosts(); 
+    <!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>관리자 페이지</title>
+</head>
+<body>
+
+  <!-- 게시글 목록 예시 -->
+  <table>
+    <tr>
+      <td>게시글 제목 예시</td>
+      <!-- 삭제 버튼 클릭 시 handleDelete 함수 호출 (게시글 ID 전달) -->
+      <td>
+        <button onclick="handleDelete(123)">삭제</button>
+      </td>
+    </tr>
+  </table>
+
+  <!-- JavaScript 스크립트 작성 위치 -->
+  <script>
+    async function handleDelete(postId) {
+      if (!confirm("정말 삭제하시겠습니까?")) return;
+
+      try {
+        // 백엔드 삭제 API 호출 (경로는 실제 사용하시는 API 경로로 변경하세요)
+        const response = await fetch(`/api/posts/${postId}`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+
+        // 1. 서버 응답이 성공(200~299 상태코드)인지 명확히 확인
+        if (response.ok) {
+          alert("성공적으로 삭제되었습니다.");
+          location.reload(); // 삭제 후 화면 새로고침
+        } else {
+          // 2. 서버에서 오류(403, 404, 500 등)를 보낸 경우
+          const errorData = await response.json().catch(() => ({}));
+          alert(`삭제 실패: ${errorData.message || '서버 오류가 발생했습니다.'}`);
+        }
+      } catch (error) {
+        // 3. 네트워크 연결 문제 등으로 요청 자체가 실패한 경우
+        console.error("통신 에러:", error);
+        alert("서버와 통신하는 중 에러가 발생했습니다.");
       }
     }
-
-    // 게시글 수정 모달 열기
-    function openEditModal(postId) {
-      const post = allPostsData.find(p => p.id === postId);
-      if (!post) return;
-
-      document.getElementById('edit-post-id').value = post.id;
-      document.getElementById('edit-title').value = post.title;
-      document.getElementById('edit-content').value = post.content;
-
-      document.getElementById('edit-modal-overlay').classList.remove('hidden');
-    }
-
-    // 게시글 수정 저장 처리
-    async function handleUpdatePost() {
-      const postId = document.getElementById('edit-post-id').value;
-      const newTitle = document.getElementById('edit-title').value;
-      const newContent = document.getElementById('edit-content').value;
-
-      if (!newTitle || !newContent) return alert('제목과 내용을 모두 입력해주세요.');
-
-      const { error } = await supabaseClient
-        .from('posts')
-        .update({ title: newTitle, content: newContent })
-        .eq('id', postId);
-
-      if (error) alert('수정 실패: ' + error.message);
-      else {
-        alert('성공적으로 수정되었습니다.');
-        closeModal('edit-modal-overlay');
-        fetchPosts();
-      }
-    }
+  </script>
+</body>
+</html>
 
     // 공지사항 등록 기능
     async function handleWriteNotice() {
