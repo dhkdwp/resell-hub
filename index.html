@@ -42,7 +42,7 @@
     .page-title { margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; }
     .page-title h2 { font-size: 1.4rem; font-weight: 700; }
 
-    /* Landing Welcome Page Style (첫 화면 전용) */
+    /* Landing Welcome Page Style */
     .landing-card {
       background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(30, 41, 59, 0.9));
       border: 1px solid var(--accent-color);
@@ -72,14 +72,7 @@
     .post-header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; }
     .author { font-weight: 600; font-size: 0.9rem; }
     
-    /* Expert Badge */
-    .badge-expert {
-      background-color: rgba(245, 158, 11, 0.2); color: var(--expert-gold);
-      border: 1px solid var(--expert-gold); font-size: 0.75rem; padding: 0.1rem 0.4rem;
-      border-radius: 4px; font-weight: 700; display: inline-flex; align-items: center; gap: 0.2rem;
-    }
     .time { font-size: 0.75rem; color: var(--text-muted); margin-left: auto; }
-
     .post-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem; }
     .post-body { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1rem; }
     .post-img-thumb { width: 100%; max-height: 200px; object-fit: cover; border-radius: 8px; margin-bottom: 0.8rem; }
@@ -149,13 +142,13 @@
 <body>
 
   <header>
-    <div class="logo" onclick="switchTab('welcome')">RESELL HUB</div>
+    <div class="logo" onclick="navigateTo('welcome')">RESELL HUB</div>
     <nav class="nav-links">
-      <a id="nav-appraisal" onclick="switchTab('appraisal')">명품 감정 탭</a>
-      <a id="nav-shops" onclick="switchTab('shops')">인증된 명품샵</a>
-      <a id="nav-market" onclick="switchTab('market')">실시간 시세/수익</a>
-      <a id="nav-deal" onclick="switchTab('deal')">꿀매물 알림</a>
-      <a id="nav-free" onclick="switchTab('free')">자유게시판</a>
+      <a id="nav-appraisal" onclick="navigateTo('appraisal')">명품 감정 탭</a>
+      <a id="nav-shops" onclick="navigateTo('shops')">인증된 명품샵</a>
+      <a id="nav-market" onclick="navigateTo('market')">실시간 시세/수익</a>
+      <a id="nav-deal" onclick="navigateTo('deal')">꿀매물 알림</a>
+      <a id="nav-free" onclick="navigateTo('free')">자유게시판</a>
     </nav>
     <div class="auth-btns">
       <div id="auth-logged-out">
@@ -171,12 +164,12 @@
 
   <main class="container">
 
-    <!-- 0. 첫 화면 전용 (환영 문구 + 둘러보기 버튼) -->
+    <!-- 0. 첫 화면 전용 (환영 문구) -->
     <section id="tab-welcome">
       <div class="landing-card">
         <h1>👋 RESELL HUB 커뮤니티에 오신 것을 환영합니다!</h1>
         <p>1020 스니커즈, 명품 자율 감정 정보부터 실시간 시세 분석까지 지금 확인해보세요.</p>
-        <button class="btn-explore" onclick="switchTab('appraisal')">둘러보기 ➔</button>
+        <button class="btn-explore" onclick="navigateTo('appraisal')">둘러보기 ➔</button>
       </div>
     </section>
 
@@ -203,7 +196,7 @@
       </div>
     </section>
 
-    <!-- 2. 인증된 명품샵 탭 (신규 추가) -->
+    <!-- 2. 인증된 명품샵 탭 -->
     <section id="tab-shops" class="hidden">
       <div class="page-title">
         <h2>🛍️ RESELL HUB 공식 인증 명품샵 목록</h2>
@@ -350,17 +343,36 @@
       checkAuthSession();
       fetchPosts();
       supabaseClient.auth.onAuthStateChange((_event, session) => updateAuthUI(session));
+
+      // 초기에 URL 해시에 맞는 탭 렌더링
+      handleHashChange();
     });
 
-    // 탭 전환 (웰컴 화면 포함)
-    function switchTab(tabName) {
+    // 브라우저 URL 해시 변동 감지 이벤트
+    window.addEventListener('hashchange', handleHashChange);
+
+    // URL 변경 제어 함수 (클릭 시 URL 변경)
+    function navigateTo(tabName) {
+      if (tabName === 'welcome') {
+        location.hash = '';
+      } else {
+        location.hash = tabName;
+      }
+    }
+
+    // 현재 URL의 해시값(#)을 분석하여 화면 탭 전환
+    function handleHashChange() {
+      const hash = location.hash.replace('#', '');
+      const validTabs = ['appraisal', 'shops', 'market', 'deal', 'free'];
+      const currentTab = validTabs.includes(hash) ? hash : 'welcome';
+
       const tabs = ['welcome', 'appraisal', 'shops', 'market', 'deal', 'free'];
       tabs.forEach(tab => {
         const navEl = document.getElementById(`nav-${tab}`);
         const tabEl = document.getElementById(`tab-${tab}`);
         
-        if (navEl) navEl.classList.toggle('active', tab === tabName);
-        if (tabEl) tabEl.classList.toggle('hidden', tab !== tabName);
+        if (navEl) navEl.classList.toggle('active', tab === currentTab);
+        if (tabEl) tabEl.classList.toggle('hidden', tab !== currentTab);
       });
     }
 
