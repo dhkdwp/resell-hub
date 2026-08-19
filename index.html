@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>RESELL HUB - 1020 리셀 & 명품 감정 커뮤니티</title>
-  <!-- Supabase JS SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
@@ -21,7 +20,6 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Pretendard', -apple-system, sans-serif; }
     body { background-color: var(--bg-color); color: var(--text-main); line-height: 1.5; }
 
-    /* Header */
     header {
       display: flex; justify-content: space-between; align-items: center;
       padding: 1rem 2rem; background-color: rgba(15, 23, 42, 0.9);
@@ -31,19 +29,15 @@
     .nav-links a { color: var(--text-muted); text-decoration: none; margin-left: 1.5rem; font-size: 0.95rem; font-weight: 500; cursor: pointer; }
     .nav-links a:hover, .nav-links a.active { color: var(--text-main); font-weight: 700; }
     
-    .auth-btns .btn {
-      padding: 0.5rem 1rem; border-radius: 6px; border: none; font-size: 0.85rem; font-weight: 600; cursor: pointer;
-    }
+    .auth-btns .btn { padding: 0.5rem 1rem; border-radius: 6px; border: none; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
     .btn-login { background: transparent; color: var(--text-main); }
     .btn-signup { background: var(--accent-color); color: white; margin-left: 0.5rem; }
     .btn-logout { background: var(--danger-color); color: white; margin-left: 0.5rem; }
 
-    /* Main Layout */
     .container { max-width: 1000px; margin: 2rem auto; padding: 0 1rem; }
     .page-title { margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; }
     .page-title h2 { font-size: 1.4rem; font-weight: 700; }
 
-    /* Landing Welcome Page */
     .landing-card {
       background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(30, 41, 59, 0.9));
       border: 1px solid var(--accent-color);
@@ -64,20 +58,25 @@
       padding: 0.8rem 1.2rem; border-radius: 8px; font-size: 0.85rem; color: var(--expert-gold); margin-bottom: 1.5rem;
     }
 
-    /* Post Feed & Shop List */
     .post-card {
       background-color: var(--card-bg); border: 1px solid var(--border-color);
       border-radius: 12px; padding: 1.2rem; margin-bottom: 1rem; transition: transform 0.2s; cursor: pointer;
+      position: relative;
     }
-    .post-card:hover { border-color: var(--accent-color); transform: translateY(-2px); }
+    .post-card.notice-pinned {
+      border: 1px solid var(--expert-gold);
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.08), var(--card-bg));
+    }
+    .post-card:hover { transform: translateY(-2px); }
     .post-header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; }
     .author { font-weight: 600; font-size: 0.9rem; }
     .time { font-size: 0.75rem; color: var(--text-muted); margin-left: auto; }
-    .post-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem; }
+    .post-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; }
     .post-body { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1rem; }
     .post-img-thumb { width: 100%; max-height: 200px; object-fit: cover; border-radius: 8px; margin-bottom: 0.8rem; }
     
-    /* Certified Shop Grid */
+    .badge-notice { background: var(--expert-gold); color: #000; font-size: 0.75rem; padding: 0.1rem 0.5rem; border-radius: 4px; font-weight: bold; }
+
     .shop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; }
     .shop-card {
       background-color: var(--card-bg); border: 1px solid var(--border-color);
@@ -87,20 +86,17 @@
     .shop-card:hover { border-color: var(--expert-gold); transform: translateY(-3px); }
     .shop-badge { background: rgba(245, 158, 11, 0.15); color: var(--expert-gold); font-size: 0.75rem; padding: 0.2rem 0.5rem; border-radius: 4px; width: fit-content; margin-bottom: 0.5rem; font-weight: bold; }
 
-    /* Admin Table Style */
     .admin-table { width: 100%; border-collapse: collapse; margin-top: 1rem; background: var(--card-bg); border-radius: 8px; overflow: hidden; }
     .admin-table th, .admin-table td { padding: 0.8rem 1rem; text-align: left; border-bottom: 1px solid var(--border-color); font-size: 0.9rem; }
     .admin-table th { background: rgba(255,255,255,0.05); color: var(--text-muted); }
     .btn-delete { background: var(--danger-color); color: white; border: none; padding: 0.3rem 0.7rem; border-radius: 4px; cursor: pointer; font-size: 0.8rem; }
 
-    /* Action Buttons & Utilities */
     .btn-write {
       background-color: var(--accent-color); color: white; padding: 0.6rem 1.2rem;
       border-radius: 8px; text-decoration: none; font-size: 0.9rem; font-weight: 600; cursor: pointer; border: none;
     }
     .hidden { display: none !important; }
 
-    /* Modal Style */
     .modal-overlay {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: rgba(0, 0, 0, 0.75); display: flex; justify-content: center; align-items: center; z-index: 200;
@@ -117,14 +113,13 @@
       width: 100%; padding: 0.75rem; background: var(--bg-color); border: 1px solid var(--border-color);
       border-radius: 6px; color: var(--text-main); font-size: 0.9rem; outline: none;
     }
-    .form-group input:focus, .form-group textarea:focus { border-color: var(--accent-color); }
+    .form-checkbox { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; cursor: pointer; color: var(--expert-gold); font-size: 0.9rem; font-weight: bold; }
     .btn-submit {
       width: 100%; padding: 0.75rem; background: var(--accent-color); color: white;
       border: none; border-radius: 6px; font-weight: 700; font-size: 0.95rem; cursor: pointer; margin-top: 0.5rem;
     }
     .user-profile { font-size: 0.85rem; color: var(--text-muted); margin-right: 0.5rem; }
 
-    /* Fullscreen Post Detail Modal */
     .full-modal-overlay {
       position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
       background: var(--bg-color); z-index: 300; display: flex; flex-direction: column; overflow-y: auto;
@@ -148,8 +143,7 @@
       <a id="nav-appraisal" onclick="navigateTo('appraisal')">명품 감정 탭</a>
       <a id="nav-shops" onclick="navigateTo('shops')">인증된 명품샵</a>
       <a id="nav-free" onclick="navigateTo('free')">자유게시판</a>
-      <!-- 관리자 로그인 시에만 노출되는 탭 -->
-      <a id="nav-admin" class="hidden" onclick="navigateTo('admin')" style="color: var(--expert-gold);">⚙️ 관리자 전용</a>
+      <a id="nav-admin" class="hidden" onclick="navigateTo('admin')" style="color: var(--expert-gold);">⚙️ 어드민 페이지</a>
     </nav>
     <div class="auth-btns">
       <div id="auth-logged-out">
@@ -165,7 +159,7 @@
 
   <main class="container">
 
-    <!-- 0. 첫 화면 전용 (환영 문구 + 타 도메인 연결) -->
+    <!-- 0. 첫 화면 전용 -->
     <section id="tab-welcome">
       <div class="landing-card">
         <h1>👋 RESELL HUB 커뮤니티에 오신 것을 환영합니다!</h1>
@@ -220,15 +214,16 @@
       <div id="free-posts"></div>
     </section>
 
-    <!-- 4. 관리자 전용 대시보드 탭 -->
+    <!-- 4. 관리자 전용 어드민 페이지 -->
     <section id="tab-admin" class="hidden">
       <div class="page-title">
-        <h2 style="color: var(--expert-gold);">⚙️ 게시글 통합 관리 (어드민)</h2>
+        <h2 style="color: var(--expert-gold);">⚙️ 어드민 커뮤니티 관리 센터</h2>
       </div>
       <table class="admin-table">
         <thead>
           <tr>
             <th>ID</th>
+            <th>구분</th>
             <th>제목</th>
             <th>작성일시</th>
             <th>관리</th>
@@ -239,7 +234,7 @@
     </section>
   </main>
 
-  <!-- 대형 화면 게시글 상세보기 모달 -->
+  <!-- 상세 정보 모달 -->
   <div id="full-detail-modal" class="full-modal-overlay hidden">
     <div class="full-modal-header">
       <div class="logo">RESELL HUB</div>
@@ -256,12 +251,11 @@
     </div>
   </div>
 
-  <!-- 입력 및 회원관리 팝업 모달 -->
+  <!-- 작성 및 로그인 팝업 모달 -->
   <div id="modal-overlay" class="modal-overlay hidden">
     <div class="modal-content">
       <button class="modal-close" onclick="closeModal()">✕</button>
       
-      <!-- 로그인 폼 -->
       <div id="modal-login-form" class="hidden">
         <h3 class="modal-title">로그인</h3>
         <div class="form-group"><label>이메일</label><input type="email" id="login-email" placeholder="example@email.com"></div>
@@ -269,7 +263,6 @@
         <button class="btn-submit" onclick="handleLogin()">로그인</button>
       </div>
 
-      <!-- 회원가입 폼 -->
       <div id="modal-signup-form" class="hidden">
         <h3 class="modal-title">회원가입</h3>
         <div class="form-group"><label>이메일</label><input type="email" id="signup-email" placeholder="example@email.com"></div>
@@ -277,32 +270,37 @@
         <button class="btn-submit" onclick="handleSignUp()">가입완료</button>
       </div>
 
-      <!-- 감정 질문 작성 폼 -->
+      <!-- 감정 질문 작성 -->
       <div id="modal-write-appraisal-form" class="hidden">
         <h3 class="modal-title">감정 질문 등록</h3>
+        <label id="appraisal-admin-option" class="form-checkbox hidden">
+          <input type="checkbox" id="appraisal-is-notice"> 📌 [어드민] 공지사항으로 등록 및 상단 고정
+        </label>
         <div class="form-group"><label>제목</label><input type="text" id="appraisal-title-input" placeholder="[브랜드/제품명] 정품 문의합니다."></div>
         <div class="form-group"><label>내용</label><textarea id="appraisal-content-input" rows="4" placeholder="구매처, 가격, 상태를 설명해주세요."></textarea></div>
-        <div class="form-group"><label>사진 등록 (이미지 URL 또는 파일)</label><input type="text" id="appraisal-image-input" placeholder="https://example.com/image.jpg" onchange="previewImage(this, 'appraisal-preview')"><input type="file" accept="image/*" style="margin-top:5px;" onchange="handleFileSelect(this, 'appraisal-image-input', 'appraisal-preview')"><img id="appraisal-preview" class="post-img-thumb hidden" style="margin-top:10px;"></div>
+        <div class="form-group"><label>사진 등록</label><input type="text" id="appraisal-image-input" placeholder="https://example.com/image.jpg" onchange="previewImage(this, 'appraisal-preview')"><input type="file" accept="image/*" style="margin-top:5px;" onchange="handleFileSelect(this, 'appraisal-image-input', 'appraisal-preview')"><img id="appraisal-preview" class="post-img-thumb hidden" style="margin-top:10px;"></div>
         <button class="btn-submit" onclick="handleWritePost('appraisal')">질문 등록하기</button>
       </div>
 
-      <!-- 자유게시판 작성 폼 -->
+      <!-- 자유게시판 작성 -->
       <div id="modal-write-free-form" class="hidden">
         <h3 class="modal-title">자유글 작성</h3>
+        <label id="free-admin-option" class="form-checkbox hidden">
+          <input type="checkbox" id="free-is-notice"> 📌 [어드민] 공지사항으로 등록 및 상단 고정
+        </label>
         <div class="form-group"><label>제목</label><input type="text" id="free-title-input" placeholder="제목을 입력하세요"></div>
         <div class="form-group"><label>내용</label><textarea id="free-content-input" rows="4" placeholder="내용을 입력하세요"></textarea></div>
-        <div class="form-group"><label>사진 등록 (이미지 URL 또는 파일)</label><input type="text" id="free-image-input" placeholder="https://example.com/image.jpg" onchange="previewImage(this, 'free-preview')"><input type="file" accept="image/*" style="margin-top:5px;" onchange="handleFileSelect(this, 'free-image-input', 'free-preview')"><img id="free-preview" class="post-img-thumb hidden" style="margin-top:10px;"></div>
+        <div class="form-group"><label>사진 등록</label><input type="text" id="free-image-input" placeholder="https://example.com/image.jpg" onchange="previewImage(this, 'free-preview')"><input type="file" accept="image/*" style="margin-top:5px;" onchange="handleFileSelect(this, 'free-image-input', 'free-preview')"><img id="free-preview" class="post-img-thumb hidden" style="margin-top:10px;"></div>
         <button class="btn-submit" onclick="handleWritePost('free')">등록하기</button>
       </div>
     </div>
   </div>
 
   <script>
-    const MAIN_SITE_URL = "https://resell-main.com"; 
-    // ------------------------------------------------------------------------
-    // [설정] 어드민 권한을 부여할 본인의 이메일 주소를 적어주세요.
-    // ------------------------------------------------------------------------
-    const ADMIN_EMAIL = "angjeseo@kakao.com"; 
+    // 이동할 서브 도메인 또는 메인 사이트 URL 설정
+    const MAIN_SITE_URL = "https://kream.co.kr"; 
+    // 어드민 전용 권한을 부여할 이메일 주소
+    const ADMIN_EMAIL = "admin@email.com"; 
 
     const SUPABASE_URL = 'https://wnekidpaiqkdxcovxckz.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_0ntmu7elx6JF7gnKVRac6Q_gngQijPi';
@@ -319,8 +317,13 @@
 
     window.addEventListener('hashchange', handleHashChange);
 
+    // 둘러보기 클릭 시 안전 리다이렉트 처리
     function redirectToMainDomain() {
-      window.location.href = MAIN_SITE_URL;
+      if (MAIN_SITE_URL && MAIN_SITE_URL.startsWith("http")) {
+        window.location.assign(MAIN_SITE_URL);
+      } else {
+        alert("이동할 사이트 주소가 올바르지 않습니다.");
+      }
     }
 
     function navigateToWelcome() { location.hash = ''; }
@@ -335,7 +338,6 @@
       tabs.forEach(tab => {
         const navEl = document.getElementById(`nav-${tab}`);
         const tabEl = document.getElementById(`tab-${tab}`);
-        
         if (navEl) navEl.classList.toggle('active', tab === currentTab);
         if (tabEl) tabEl.classList.toggle('hidden', tab !== currentTab);
       });
@@ -403,17 +405,15 @@
 
     function updateAuthUI(session) {
       currentUser = session ? session.user : null;
+      const isAdmin = currentUser && currentUser.email === ADMIN_EMAIL;
+
       document.getElementById('auth-logged-out').classList.toggle('hidden', !!session);
       document.getElementById('auth-logged-in').classList.toggle('hidden', !session);
       document.getElementById('user-email-display').innerText = session ? session.user.email : '';
 
-      // 어드민 계정일 경우 메뉴 표시
-      const adminNav = document.getElementById('nav-admin');
-      if (currentUser && currentUser.email === ADMIN_EMAIL) {
-        adminNav.classList.remove('hidden');
-      } else {
-        adminNav.classList.add('hidden');
-      }
+      document.getElementById('nav-admin').classList.toggle('hidden', !isAdmin);
+      document.getElementById('appraisal-admin-option').classList.toggle('hidden', !isAdmin);
+      document.getElementById('free-admin-option').classList.toggle('hidden', !isAdmin);
     }
 
     async function handleSignUp() {
@@ -422,7 +422,7 @@
       if (!email || !password) return alert('이메일과 비밀번호를 입력해주세요.');
       const { error } = await supabaseClient.auth.signUp({ email, password });
       if (error) alert('회원가입 실패: ' + error.message);
-      else { alert('회원가입 요청이 완료되었습니다!'); closeModal(); }
+      else { alert('회원가입 완료!'); closeModal(); }
     }
 
     async function handleLogin() {
@@ -445,10 +445,14 @@
       const titleInput = isAppraisal ? document.getElementById('appraisal-title-input') : document.getElementById('free-title-input');
       const contentInput = isAppraisal ? document.getElementById('appraisal-content-input') : document.getElementById('free-content-input');
       const imageInput = isAppraisal ? document.getElementById('appraisal-image-input') : document.getElementById('free-image-input');
+      const isNoticeBox = isAppraisal ? document.getElementById('appraisal-is-notice') : document.getElementById('free-is-notice');
 
       if (!titleInput.value || !contentInput.value) return alert('제목과 내용을 입력해 주세요.');
 
-      const prefix = isAppraisal ? '[감정요청] ' : '[자유] ';
+      const isAdmin = currentUser && currentUser.email === ADMIN_EMAIL;
+      const isNotice = isAdmin && isNoticeBox.checked;
+
+      let prefix = isNotice ? '[공지] ' : (isAppraisal ? '[감정요청] ' : '[자유] ');
       let fullContent = contentInput.value;
       if (imageInput.value) {
         fullContent += `\n\n[IMG_URL]:${imageInput.value}`;
@@ -462,6 +466,7 @@
       else {
         alert('성공적으로 등록되었습니다.');
         titleInput.value = ''; contentInput.value = ''; imageInput.value = '';
+        if (isNoticeBox) isNoticeBox.checked = false;
         closeModal();
         fetchPosts();
       }
@@ -475,17 +480,26 @@
       const freeContainer = document.getElementById('free-posts');
       const adminContainer = document.getElementById('admin-post-list');
 
-      const appraisalPosts = posts.filter(p => p.title.startsWith('[감정요청]'));
-      const freePosts = posts.filter(p => !p.title.startsWith('[감정요청]'));
+      // 상단 고정(공지사항) 정렬 로직
+      const sortedPosts = posts.sort((a, b) => {
+        const aIsNotice = a.title.startsWith('[공지]');
+        const bIsNotice = b.title.startsWith('[공지]');
+        if (aIsNotice && !bIsNotice) return -1;
+        if (!aIsNotice && bIsNotice) return 1;
+        return new Date(b.created_at) - new Date(a.created_at);
+      });
+
+      const appraisalPosts = sortedPosts.filter(p => p.title.startsWith('[감정요청]') || p.title.startsWith('[공지]'));
+      const freePosts = sortedPosts.filter(p => !p.title.startsWith('[감정요청]'));
 
       if (appraisalContainer) appraisalContainer.innerHTML = appraisalPosts.map(p => renderPostCard(p)).join('');
       if (freeContainer) freeContainer.innerHTML = freePosts.map(p => renderPostCard(p)).join('');
 
-      // 어드민 전용 목록 렌더링
       if (adminContainer) {
-        adminContainer.innerHTML = posts.map(p => `
+        adminContainer.innerHTML = sortedPosts.map(p => `
           <tr>
             <td>${p.id}</td>
+            <td>${p.title.startsWith('[공지]') ? '<b style="color:var(--expert-gold)">공지</b>' : '일반'}</td>
             <td>${escapeHtml(p.title)}</td>
             <td>${new Date(p.created_at).toLocaleString()}</td>
             <td><button class="btn-delete" onclick="deletePostByAdmin(${p.id})">삭제</button></td>
@@ -494,21 +508,18 @@
       }
     }
 
-    // 관리자 전용 삭제 함수
     async function deletePostByAdmin(postId) {
       if (!confirm('정말 이 게시글을 삭제하시겠습니까?')) return;
 
       const { error } = await supabaseClient.from('posts').delete().eq('id', postId);
-      if (error) {
-        alert('삭제 실패: ' + error.message);
-      } else {
-        alert('게시글이 삭제되었습니다.');
-        fetchPosts();
-      }
+      if (error) alert('삭제 실패: ' + error.message);
+      else { alert('게시글이 삭제되었습니다.'); fetchPosts(); }
     }
 
     function renderPostCard(post) {
-      const cleanTitle = post.title.replace('[감정요청] ', '').replace('[자유] ', '');
+      const isNotice = post.title.startsWith('[공지]');
+      const cleanTitle = post.title.replace('[감정요청] ', '').replace('[자유] ', '').replace('[공지] ', '');
+      
       let bodyText = post.content;
       let imageUrl = '';
 
@@ -521,14 +532,19 @@
       const safeTitle = escapeHtml(cleanTitle);
       const safeContent = escapeHtml(bodyText);
       const dateStr = new Date(post.created_at).toLocaleDateString();
+      const isAdmin = currentUser && currentUser.email === ADMIN_EMAIL;
 
       return `
-        <article class="post-card" onclick="openDetailModal('익명유저', '${dateStr}', '${safeTitle.replace(/'/g, "\\'")}', '${safeContent.replace(/'/g, "\\'").replace(/\n/g, "\\n")}', '${imageUrl.replace(/'/g, "\\'")}')">
+        <article class="post-card ${isNotice ? 'notice-pinned' : ''}" onclick="openDetailModal('${isNotice ? '관리자' : '익명유저'}', '${dateStr}', '${safeTitle.replace(/'/g, "\\'")}', '${safeContent.replace(/'/g, "\\'").replace(/\n/g, "\\n")}', '${imageUrl.replace(/'/g, "\\'")}')">
           <div class="post-header">
-            <span class="author">익명유저</span>
+            <span class="author" style="${isNotice ? 'color:var(--expert-gold);' : ''}">${isNotice ? '👑 관리자' : '익명유저'}</span>
             <span class="time">${dateStr}</span>
+            ${isAdmin ? `<button class="btn-delete" style="margin-left:10px;" onclick="event.stopPropagation(); deletePostByAdmin(${post.id});">삭제</button>` : ''}
           </div>
-          <h3 class="post-title">${safeTitle}</h3>
+          <h3 class="post-title">
+            ${isNotice ? '<span class="badge-notice">공지</span>' : ''}
+            ${safeTitle}
+          </h3>
           ${imageUrl ? `<img src="${imageUrl}" class="post-img-thumb">` : ''}
           <p class="post-body">${safeContent}</p>
         </article>
