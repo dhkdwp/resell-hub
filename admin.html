@@ -187,7 +187,7 @@
       adminContainer.innerHTML = posts.map(p => `
         <tr>
           <td>${p.id}</td>
-          <td>${p.title.startsWith('[공지]') ? '<b style="color:var(--expert-gold)">공지</b>' : '일반'}</td>
+          <td>${p.title.includes('[공지]') ? '<b style="color:var(--expert-gold)">공지</b>' : '일반'}</td>
           <td>${escapeHtml(p.title)}</td>
           <td>${new Date(p.created_at).toLocaleDateString()}</td>
           <td>
@@ -212,7 +212,6 @@
         } else { 
           alert('게시글이 삭제되었습니다.'); 
           
-          // 삭제 성공 시 화면에서 즉시 제거
           allPostsData = allPostsData.filter(p => p.id !== postId);
           renderAdminTable(allPostsData);
           await fetchPosts();
