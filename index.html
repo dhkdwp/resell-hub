@@ -2,8 +2,8 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>RESELL HUB - 1020 리셀 & 명품 감정 커뮤니티</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>RESELL HUB - 리셀 & 명품 감정 커뮤니티</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
@@ -20,151 +20,173 @@
       --shadow-color: rgba(140, 115, 85, 0.08);
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Pretendard', -apple-system, sans-serif; }
-    body { background-color: var(--bg-color); color: var(--text-main); line-height: 1.5; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Pretendard', -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
+    body { background-color: var(--bg-color); color: var(--text-main); line-height: 1.5; overflow-x: hidden; }
 
     header {
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 1rem 2rem; background-color: rgba(252, 250, 247, 0.95);
+      display: flex; flex-direction: column; gap: 0.8rem;
+      padding: 1rem 1.2rem; background-color: rgba(252, 250, 247, 0.95);
       border-bottom: 1px solid var(--border-color); position: sticky; top: 0; z-index: 100;
       backdrop-filter: blur(8px);
     }
-    .logo { font-size: 1.5rem; font-weight: 800; color: var(--accent-color); letter-spacing: -0.5px; cursor: pointer; }
-    .nav-links a { color: var(--text-muted); text-decoration: none; margin-left: 1.5rem; font-size: 0.95rem; font-weight: 500; cursor: pointer; }
-    .nav-links a:hover, .nav-links a.active { color: var(--accent-color); font-weight: 700; }
     
-    .auth-btns .btn { padding: 0.5rem 1rem; border-radius: 6px; border: none; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
+    .header-top { display: flex; justify-content: space-between; align-items: center; width: 100%; }
+    .logo { font-size: 1.3rem; font-weight: 800; color: var(--accent-color); letter-spacing: -0.5px; cursor: pointer; }
+    
+    .nav-links { display: flex; gap: 1rem; overflow-x: auto; white-space: nowrap; width: 100%; padding-bottom: 2px; -webkit-overflow-scrolling: touch; }
+    .nav-links::-webkit-scrollbar { display: none; }
+    .nav-links a { color: var(--text-muted); text-decoration: none; font-size: 0.9rem; font-weight: 500; cursor: pointer; flex-shrink: 0; }
+    .nav-links a:hover, .nav-links a.active { color: var(--accent-color); font-weight: 700; border-bottom: 2px solid var(--accent-color); padding-bottom: 2px; }
+    
+    .auth-btns { display: flex; align-items: center; gap: 0.4rem; }
+    .auth-btns .btn { padding: 0.4rem 0.8rem; border-radius: 6px; border: none; font-size: 0.8rem; font-weight: 600; cursor: pointer; }
     .btn-login { background: transparent; color: var(--text-main); border: 1px solid var(--border-color); }
-    .btn-signup { background: var(--accent-color); color: white; margin-left: 0.5rem; }
-    .btn-logout { background: var(--danger-color); color: white; margin-left: 0.5rem; }
-    .btn-admin-link { background: var(--expert-gold); color: white; font-weight: 700; margin-left: 0.5rem; text-decoration: none; padding: 0.5rem 1rem; border-radius: 6px; font-size: 0.85rem; }
+    .btn-signup { background: var(--accent-color); color: white; }
+    .btn-logout { background: var(--danger-color); color: white; }
+    .btn-admin-link { background: var(--expert-gold); color: white; font-weight: 700; text-decoration: none; padding: 0.4rem 0.8rem; border-radius: 6px; font-size: 0.8rem; }
 
-    .container { max-width: 1000px; margin: 2rem auto; padding: 0 1rem; }
-    .page-title { margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; }
-    .page-title h2 { font-size: 1.4rem; font-weight: 700; color: var(--text-main); }
+    .container { max-width: 1000px; margin: 1rem auto; padding: 0 1rem; }
+    .page-title { margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center; }
+    .page-title h2 { font-size: 1.2rem; font-weight: 700; color: var(--text-main); }
 
-    /* 첫 시작화면 배경 이미지 카드 (제공해주신 이미지 스타일 적용) */
+    /* 첫 시작화면 배경 이미지 카드 모바일 가독성 개선 */
     .landing-card {
-      background: linear-gradient(rgba(255, 255, 255, 0.65), rgba(255, 255, 255, 0.65)), url('bg-welcome.jpg') center/cover no-repeat;
+      background: linear-gradient(rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.7)), url('bg-welcome.jpg') center/cover no-repeat;
       border: 1px solid var(--border-color);
-      padding: 5rem 2rem; border-radius: 20px; text-align: center; margin: 2rem 0;
-      box-shadow: 0 10px 30px var(--shadow-color);
+      padding: 3.5rem 1.2rem; border-radius: 16px; text-align: center; margin: 1rem 0;
+      box-shadow: 0 8px 24px var(--shadow-color);
     }
-    .landing-card h1 { font-size: 2.2rem; color: #4a3f35; margin-bottom: 1rem; font-weight: 800; letter-spacing: -0.5px; }
-    .landing-card p { font-size: 1.1rem; color: var(--text-muted); margin-bottom: 2rem; font-weight: 500; }
+    .landing-card h1 { font-size: 1.8rem; color: #4a3f35; margin-bottom: 0.8rem; font-weight: 800; letter-spacing: -0.5px; }
+    .landing-card p { font-size: 0.95rem; color: var(--text-muted); margin-bottom: 1.8rem; font-weight: 500; word-break: keep-all; }
     .btn-explore {
-      background-color: var(--accent-color); color: white; padding: 0.9rem 2.5rem;
-      border-radius: 30px; font-size: 1.1rem; font-weight: 700; cursor: pointer; border: none;
+      background-color: var(--accent-color); color: white; padding: 0.8rem 2rem;
+      border-radius: 30px; font-size: 1rem; font-weight: 700; cursor: pointer; border: none;
       box-shadow: 0 4px 15px rgba(140, 115, 85, 0.2); transition: transform 0.2s, background-color 0.2s;
     }
-    .btn-explore:hover { background-color: var(--accent-hover); transform: translateY(-2px); }
+    .btn-explore:active { transform: scale(0.98); }
 
     .notice-box {
       background: #fffdfa; border: 1px solid var(--expert-gold);
-      padding: 0.9rem 1.2rem; border-radius: 10px; font-size: 0.85rem; color: #a3723f; margin-bottom: 1.5rem;
+      padding: 0.8rem 1rem; border-radius: 10px; font-size: 0.8rem; color: #a3723f; margin-bottom: 1.2rem; line-height: 1.4;
     }
 
     .post-card {
       background-color: var(--card-bg); border: 1px solid var(--border-color);
-      border-radius: 12px; padding: 1.4rem; margin-bottom: 1rem; transition: transform 0.2s, box-shadow 0.2s; cursor: pointer;
-      box-shadow: 0 2px 8px var(--shadow-color);
+      border-radius: 12px; padding: 1.1rem; margin-bottom: 0.8rem; transition: transform 0.2s;
+      box-shadow: 0 2px 6px var(--shadow-color);
     }
     .post-card.notice-pinned {
       border: 1px solid var(--expert-gold);
       background: linear-gradient(135deg, #fffdf9, #ffffff);
     }
-    .post-card:hover { transform: translateY(-2px); box-shadow: 0 6px 16px var(--shadow-color); }
-    .post-header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; }
-    .author { font-weight: 600; font-size: 0.9rem; color: var(--accent-color); }
+    .post-header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.4rem; }
+    .author { font-weight: 600; font-size: 0.85rem; color: var(--accent-color); }
     .time { font-size: 0.75rem; color: var(--text-muted); margin-left: auto; }
-    .post-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; color: var(--text-main); }
-    .post-body { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1rem; }
-    .post-img-thumb { width: 100%; max-height: 200px; object-fit: cover; border-radius: 8px; margin-bottom: 0.8rem; border: 1px solid var(--border-color); }
+    .post-title { font-size: 1rem; font-weight: 700; margin-bottom: 0.4rem; display: flex; align-items: center; gap: 0.4rem; color: var(--text-main); word-break: break-all; }
+    .post-body { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.6rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .post-img-thumb { width: 100%; max-height: 180px; object-fit: cover; border-radius: 8px; margin-bottom: 0.6rem; border: 1px solid var(--border-color); }
     
-    .badge-notice { background: var(--expert-gold); color: #fff; font-size: 0.75rem; padding: 0.15rem 0.5rem; border-radius: 4px; font-weight: bold; }
+    .badge-notice { background: var(--expert-gold); color: #fff; font-size: 0.7rem; padding: 0.1rem 0.4rem; border-radius: 4px; font-weight: bold; flex-shrink: 0; }
 
-    .shop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; }
+    .shop-grid { display: grid; grid-template-columns: 1fr; gap: 0.8rem; }
     .shop-card {
       background-color: var(--card-bg); border: 1px solid var(--border-color);
-      border-radius: 12px; padding: 1.5rem; text-decoration: none; color: var(--text-main);
-      display: flex; flex-direction: column; justify-content: space-between; transition: 0.2s;
-      box-shadow: 0 2px 8px var(--shadow-color);
+      border-radius: 12px; padding: 1.2rem; text-decoration: none; color: var(--text-main);
+      display: flex; flex-direction: column; justify-content: space-between;
+      box-shadow: 0 2px 6px var(--shadow-color);
     }
-    .shop-card:hover { border-color: var(--accent-color); transform: translateY(-3px); }
-    .shop-badge { background: #fdf8f2; color: var(--accent-color); border: 1px solid var(--border-color); font-size: 0.75rem; padding: 0.2rem 0.5rem; border-radius: 4px; width: fit-content; margin-bottom: 0.5rem; font-weight: bold; }
+    .shop-badge { background: #fdf8f2; color: var(--accent-color); border: 1px solid var(--border-color); font-size: 0.7rem; padding: 0.15rem 0.4rem; border-radius: 4px; width: fit-content; margin-bottom: 0.4rem; font-weight: bold; }
 
     .btn-write {
-      background-color: var(--accent-color); color: white; padding: 0.6rem 1.2rem;
-      border-radius: 8px; text-decoration: none; font-size: 0.9rem; font-weight: 600; cursor: pointer; border: none;
+      background-color: var(--accent-color); color: white; padding: 0.5rem 0.9rem;
+      border-radius: 8px; text-decoration: none; font-size: 0.85rem; font-weight: 600; cursor: pointer; border: none; flex-shrink: 0;
     }
     .hidden { display: none !important; }
 
     .modal-overlay {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(51, 44, 39, 0.4); backdrop-filter: blur(4px); display: flex; justify-content: center; align-items: center; z-index: 200;
+      background: rgba(51, 44, 39, 0.4); backdrop-filter: blur(4px); display: flex; justify-content: center; align-items: center; z-index: 200; padding: 1rem;
     }
     .modal-content {
       background-color: var(--card-bg); border: 1px solid var(--border-color);
-      border-radius: 16px; padding: 2rem; width: 90%; max-width: 450px; position: relative; max-height: 90vh; overflow-y: auto;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+      border-radius: 16px; padding: 1.5rem; width: 100%; max-width: 450px; position: relative; max-height: 85vh; overflow-y: auto;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
     }
-    .modal-close { position: absolute; top: 1rem; right: 1rem; background: none; border: none; color: var(--text-muted); font-size: 1.4rem; cursor: pointer; }
-    .modal-title { font-size: 1.3rem; font-weight: 700; margin-bottom: 1.5rem; text-align: center; color: var(--text-main); }
-    .form-group { margin-bottom: 1rem; }
-    .form-group label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.4rem; }
+    .modal-close { position: absolute; top: 1rem; right: 1rem; background: none; border: none; color: var(--text-muted); font-size: 1.3rem; cursor: pointer; }
+    .modal-title { font-size: 1.15rem; font-weight: 700; margin-bottom: 1.2rem; text-align: center; color: var(--text-main); }
+    .form-group { margin-bottom: 0.8rem; }
+    .form-group label { display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.3rem; }
     .form-group input, .form-group textarea {
-      width: 100%; padding: 0.75rem; background: var(--bg-color); border: 1px solid var(--border-color);
-      border-radius: 8px; color: var(--text-main); font-size: 0.9rem; outline: none;
+      width: 100%; padding: 0.65rem; background: var(--bg-color); border: 1px solid var(--border-color);
+      border-radius: 8px; color: var(--text-main); font-size: 0.85rem; outline: none;
     }
     .btn-submit {
-      width: 100%; padding: 0.75rem; background: var(--accent-color); color: white;
-      border: none; border-radius: 8px; font-weight: 700; font-size: 0.95rem; cursor: pointer; margin-top: 0.5rem;
+      width: 100%; padding: 0.7rem; background: var(--accent-color); color: white;
+      border: none; border-radius: 8px; font-weight: 700; font-size: 0.9rem; cursor: pointer; margin-top: 0.4rem;
     }
-    .user-profile { font-size: 0.85rem; color: var(--text-muted); margin-right: 0.5rem; }
+    .user-profile { font-size: 0.75rem; color: var(--text-muted); max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
+    /* 상세보기 화면 모바일 최적화 */
     .full-modal-overlay {
       position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
       background: var(--bg-color); z-index: 300; display: flex; flex-direction: column; overflow-y: auto;
     }
     .full-modal-header {
-      padding: 1.2rem 2rem; border-bottom: 1px solid var(--border-color); display: flex;
-      justify-content: space-between; align-items: center; position: sticky; top: 0; background: var(--bg-color);
+      padding: 1rem; border-bottom: 1px solid var(--border-color); display: flex;
+      justify-content: space-between; align-items: center; position: sticky; top: 0; background: var(--bg-color); z-index: 10;
     }
-    .full-modal-body { max-width: 800px; width: 100%; margin: 2rem auto; padding: 0 1.5rem; }
-    .full-modal-title { font-size: 1.8rem; font-weight: 800; margin-bottom: 1rem; color: var(--text-main); }
-    .full-modal-meta { display: flex; gap: 1rem; color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; }
-    .full-modal-image { width: 100%; max-height: 500px; object-fit: contain; border-radius: 12px; margin-bottom: 1.5rem; background: #fff; border: 1px solid var(--border-color); }
-    .full-modal-content { font-size: 1.05rem; line-height: 1.8; color: var(--text-main); white-space: pre-line; }
+    .full-modal-body { width: 100%; margin: 1rem auto; padding: 0 1rem; }
+    .full-modal-title { font-size: 1.3rem; font-weight: 800; margin-bottom: 0.8rem; color: var(--text-main); word-break: break-all; }
+    .full-modal-meta { display: flex; gap: 0.8rem; color: var(--text-muted); font-size: 0.8rem; margin-bottom: 1.2rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.8rem; }
+    .full-modal-image { width: 100%; max-height: 350px; object-fit: contain; border-radius: 10px; margin-bottom: 1.2rem; background: #fff; border: 1px solid var(--border-color); }
+    .full-modal-content { font-size: 0.95rem; line-height: 1.7; color: var(--text-main); white-space: pre-line; word-break: break-all; }
+
+    /* 데스크톱 상향 호환 반응형 설정 */
+    @media (min-width: 769px) {
+      header { flex-direction: row; justify-content: space-between; padding: 1rem 2rem; }
+      .header-top { width: auto; }
+      .nav-links { width: auto; overflow-x: visible; }
+      .nav-links a { margin-left: 1.5rem; }
+      .shop-grid { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+      .landing-card { padding: 5rem 2rem; border-radius: 20px; }
+      .landing-card h1 { font-size: 2.2rem; }
+      .landing-card p { font-size: 1.1rem; }
+      .full-modal-body { max-width: 800px; padding: 0 1.5rem; }
+      .full-modal-title { font-size: 1.8rem; }
+    }
   </style>
 </head>
 <body>
 
   <header>
-    <div class="logo" onclick="navigateToWelcome()">RESELL HUB</div>
+    <div class="header-top">
+      <div class="logo" onclick="navigateToWelcome()">RESELL HUB</div>
+      <div class="auth-btns">
+        <div id="auth-logged-out">
+          <button class="btn btn-login" onclick="openModal('login')">로그인</button>
+          <button class="btn btn-signup" onclick="openModal('signup')">회원가입</button>
+        </div>
+        <div id="auth-logged-in" class="hidden" style="display:flex; align-items:center;">
+          <span class="user-profile" id="user-email-display"></span>
+          <a id="btn-admin-page" href="admin.html" class="btn-admin-link hidden">⚙️ 어드민</a>
+          <button class="btn btn-logout" onclick="handleLogout()">로그아웃</button>
+        </div>
+      </div>
+    </div>
+    
     <nav class="nav-links">
-      <a id="nav-appraisal" onclick="navigateTo('appraisal')">명품 감정 탭</a>
+      <a id="nav-appraisal" onclick="navigateTo('appraisal')">자율 감정 질문하기</a>
       <a id="nav-shops" onclick="navigateTo('shops')">인증된 명품샵</a>
       <a id="nav-free" onclick="navigateTo('free')">자유게시판</a>
     </nav>
-    <div class="auth-btns">
-      <div id="auth-logged-out">
-        <button class="btn btn-login" onclick="openModal('login')">로그인</button>
-        <button class="btn btn-signup" onclick="openModal('signup')">회원가입</button>
-      </div>
-      <div id="auth-logged-in" class="hidden">
-        <span class="user-profile" id="user-email-display"></span>
-        <a id="btn-admin-page" href="admin.html" class="btn-admin-link hidden">⚙️ 어드민 페이지</a>
-        <button class="btn btn-logout" onclick="handleLogout()">로그아웃</button>
-      </div>
-    </div>
   </header>
 
   <main class="container">
     <section id="tab-welcome">
       <div class="landing-card">
         <h1>RESELL HUB</h1>
-        <p>1020 명품 감정 정보부터 실시간 자율 커뮤니티를 이용해보세요.</p>
-        <button class="btn-explore" onclick="redirectToMainDomain()">관리자 틱톡 페이지 ➔</button>
+        <p>1020 명품 감정 정보부터 실시간 커뮤니티를 이용해보세요.</p>
+        <button class="btn-explore" onclick="redirectToMainDomain()">둘러보기 ➔</button>
       </div>
     </section>
 
@@ -173,32 +195,32 @@
         ⚠️ <b>감정 관련 안내:</b> 게시판 내 감정 소견은 사진 기반의 참고용 정보이며, 법적 보증 효력은 없습니다.
       </div>
       <div class="page-title">
-        <h2>🔍 명품/굿즈 자율 감정 질문</h2>
-        <button class="btn-write" onclick="openModal('write-appraisal')">+ 감정 질문하기</button>
+        <h2>🔍 명품 감정 질문</h2>
+        <button class="btn-write" onclick="openModal('write-appraisal')">+ 질문하기</button>
       </div>
       <div id="appraisal-posts"></div>
     </section>
 
     <section id="tab-shops" class="hidden">
       <div class="page-title">
-        <h2>🛍️ 제휴 명품샵 목록</h2>
+        <h2>🛍️ 공식 인증 명품샵 목록</h2>
       </div>
       <div class="shop-grid">
-        <a href="상단 제휴" target="_blank" class="shop-card">
+        <a href="https://kream.co.kr" target="_blank" class="shop-card">
           <div>
             <span class="shop-badge">공식 검증</span>
-            <h3 style="font-size: 1.2rem; margin-bottom: 0.5rem;">비어있음</h3>
-            <p style="font-size: 0.85rem; color: var(--text-muted);">상단 제휴 문의 바랍니다.</p>
+            <h3 style="font-size: 1.1rem; margin-bottom: 0.4rem;">KREAM (크림)</h3>
+            <p style="font-size: 0.8rem; color: var(--text-muted);">한정판 스니커즈 & 명품 정품 거래 플랫폼</p>
           </div>
-          <span style="color: var(--accent-color); font-weight: bold; margin-top: 1rem; font-size: 0.85rem;">바로가기 ➔</span>
+          <span style="color: var(--accent-color); font-weight: bold; margin-top: 0.8rem; font-size: 0.8rem;">바로가기 ➔</span>
         </a>
-        <a href="상단 제휴" target="_blank" class="shop-card">
+        <a href="https://mustit.co.kr" target="_blank" class="shop-card">
           <div>
             <span class="shop-badge">공식 검증</span>
-            <h3 style="font-size: 1.2rem; margin-bottom: 0.5rem;">비어있음</h3>
-            <p style="font-size: 0.85rem; color: var(--text-muted);">상단 제휴 문의 바랍니다.</p>
+            <h3 style="font-size: 1.1rem; margin-bottom: 0.4rem;">MUSTIT (머스트잇)</h3>
+            <p style="font-size: 0.8rem; color: var(--text-muted);">대한민국 대표 명품 부티크 쇼핑몰</p>
           </div>
-          <span style="color: var(--accent-color); font-weight: bold; margin-top: 1rem; font-size: 0.85rem;">바로가기 ➔</span>
+          <span style="color: var(--accent-color); font-weight: bold; margin-top: 0.8rem; font-size: 0.8rem;">바로가기 ➔</span>
         </a>
       </div>
     </section>
@@ -248,16 +270,16 @@
 
       <div id="modal-write-appraisal-form" class="hidden">
         <h3 class="modal-title">감정 질문 등록</h3>
-        <div class="form-group"><label>제목</label><input type="text" id="appraisal-title-input" placeholder="[브랜드/제품명] 정품 문의합니다."></div>
-        <div class="form-group"><label>내용</label><textarea id="appraisal-content-input" rows="4" placeholder="구매처, 가격, 상태를 설명해주세요."></textarea></div>
+        <div class="form-group"><label>제목</label><input type="text" id="appraisal-title-input" placeholder="[브랜드/제품명] 정품 문의"></div>
+        <div class="form-group"><label>내용</label><textarea id="appraisal-content-input" rows="4" placeholder="구매처, 가격, 상태 설명"></textarea></div>
         <div class="form-group"><label>사진 등록</label><input type="text" id="appraisal-image-input" placeholder="https://example.com/image.jpg" onchange="previewImage(this, 'appraisal-preview')"><input type="file" accept="image/*" style="margin-top:5px;" onchange="handleFileSelect(this, 'appraisal-image-input', 'appraisal-preview')"><img id="appraisal-preview" class="post-img-thumb hidden" style="margin-top:10px;"></div>
         <button class="btn-submit" onclick="handleWritePost('appraisal')">질문 등록하기</button>
       </div>
 
       <div id="modal-write-free-form" class="hidden">
         <h3 class="modal-title">자유글 작성</h3>
-        <div class="form-group"><label>제목</label><input type="text" id="free-title-input" placeholder="제목을 입력하세요"></div>
-        <div class="form-group"><label>내용</label><textarea id="free-content-input" rows="4" placeholder="내용을 입력하세요"></textarea></div>
+        <div class="form-group"><label>제목</label><input type="text" id="free-title-input" placeholder="제목 입력"></div>
+        <div class="form-group"><label>내용</label><textarea id="free-content-input" rows="4" placeholder="내용 입력"></textarea></div>
         <div class="form-group"><label>사진 등록</label><input type="text" id="free-image-input" placeholder="https://example.com/image.jpg" onchange="previewImage(this, 'free-preview')"><input type="file" accept="image/*" style="margin-top:5px;" onchange="handleFileSelect(this, 'free-image-input', 'free-preview')"><img id="free-preview" class="post-img-thumb hidden" style="margin-top:10px;"></div>
         <button class="btn-submit" onclick="handleWritePost('free')">등록하기</button>
       </div>
@@ -265,8 +287,8 @@
   </div>
 
   <script>
-    const MAIN_SITE_URL = "https://www.tiktok.com/@kingwp11"; 
-    const ADMIN_EMAIL = "angjeseo@kakao.com"; 
+    const MAIN_SITE_URL = "https://kream.co.kr"; 
+    const ADMIN_EMAIL = "admin@email.com"; 
 
     const SUPABASE_URL = 'https://wnekidpaiqkdxcovxckz.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_0ntmu7elx6JF7gnKVRac6Q_gngQijPi';
@@ -335,7 +357,7 @@
     function openDetailModal(author, time, title, content, imageUrl) {
       document.getElementById('detail-title').innerText = title;
       document.getElementById('detail-author').innerText = '작성자: ' + author;
-      document.getElementById('detail-time').innerText = '작성시간: ' + time;
+      document.getElementById('detail-time').innerText = '작성일: ' + time;
       document.getElementById('detail-content').innerText = content;
 
       const imgEl = document.getElementById('detail-image');
